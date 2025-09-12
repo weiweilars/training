@@ -278,8 +278,23 @@ The SK implementation maintains sessions better than the reference implementatio
 
 ### Port Cleanup
 
-Before starting fresh tests, clean up all background processes and ports:
+Use the included cleanup script to manage processes and ports:
 
+```bash
+# Clean up everything (MCP tools + agents)
+./cleanup.sh
+
+# Clean up only MCP tools (ports 8001, 8002)
+./cleanup.sh tools
+
+# Clean up only SK A2A agents (ports 5010, 5011, 5012)
+./cleanup.sh agents
+
+# Show help and port configuration
+./cleanup.sh help
+```
+
+**Manual cleanup alternative:**
 ```bash
 # Kill all Python processes (MCP servers and agents)
 pkill -f "python.*run_http.py"
@@ -287,10 +302,10 @@ pkill -f "python.*sk_a2a_server.py"
 
 # Alternative: Kill specific processes by port
 # Find processes using ports
-lsof -ti:5010,5011,5012,8003,8004,8005 | xargs -r kill -9
+lsof -ti:5010,5011,5012,8001,8002 | xargs -r kill -9
 
 # Verify all ports are free
-lsof -i:5010,5011,5012,8003,8004,8005
+lsof -i:5010,5011,5012,8001,8002
 
 # Start clean - restart MCP servers
 cd ../mcp_training

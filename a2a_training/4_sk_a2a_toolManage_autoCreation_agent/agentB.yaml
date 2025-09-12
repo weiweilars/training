@@ -1,25 +1,25 @@
-# File Management Agent Configuration
+# Calculator Agent Configuration
 agent:
-  id: "file-manager-agent"
-  name: "File Management Agent"
+  id: "calculator-agent"
+  name: "Calculator Agent"
   version: "1.0.0"
-  description: "A dedicated AI agent for file system operations, document management, and file organization tasks. Equipped with comprehensive file manipulation tools for efficient document handling."
+  description: "A specialized AI agent for mathematical calculations, expressions, and computational tasks. Equipped with comprehensive calculator tools for basic math, advanced functions, and expression evaluation."
   
   # Agent Card Properties
   card:
-    greeting: "Hi! I'm your File Management Agent. I can help you with file operations, document organization, reading files, and managing your file system."
-    instructions: "Ask me to list directories, read files, write documents, organize files, or perform any file system operations. I have secure access to file management tools."
+    greeting: "Hello! I'm your Calculator Agent. I can help you with mathematical calculations, solve equations, and perform various computational tasks."
+    instructions: "Ask me to calculate mathematical expressions, solve equations, or perform any computational tasks. I have access to advanced calculator tools."
     
   # Agent Personality & Behavior
   personality:
-    style: "organized and systematic"
-    tone: "efficient and reliable"
-    expertise: "file system management and document organization"
+    style: "precise and analytical"
+    tone: "accurate and methodical"
+    expertise: "mathematics and computational analysis"
     
   # Default MCP Tools
   tools:
     default_urls:
-      - "http://localhost:8000/mcp"  # File MCP server (port 8000)
+      - "http://localhost:8002/mcp"  # Calculator MCP server (port 8002)
     
   # Server Configuration
   server:

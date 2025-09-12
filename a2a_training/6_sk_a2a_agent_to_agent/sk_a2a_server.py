@@ -128,8 +128,8 @@ def load_agent_config(config_path: str) -> AgentConfig:
         exit(1)
 
 
-class SKAgent:
-    """Semantic Kernel-powered agent that can call other A2A agents"""
+class A2ATeamAgent:
+    """Semantic Kernel-powered agent that can call other A2A agents in a team"""
     
     def __init__(self, model="gpt-3.5-turbo", agent_name="SK Agent", 
                  agent_description="SK-powered agent", agent_instruction="You are a helpful assistant."):
@@ -470,11 +470,14 @@ class SKAgent:
         self._agent_plugins.clear()
         logger.info("SKAgent cleanup completed")
 
-class SKA2AAgent:
-    """SK-powered A2A Agent with dynamic A2A agent discovery"""
+class A2AAgentServer:
+    """Framework-agnostic A2A Agent Server with injectable agent class"""
     
-    def __init__(self, config: Optional[AgentConfig] = None, agent_id: str = None, 
+    def __init__(self, agent_class=None, config: Optional[AgentConfig] = None, agent_id: str = None, 
                  agent_name: str = None, a2a_agent_url: str = None, port: int = None):
+        # Store injectable agent class (defaults to A2ATeamAgent for backward compatibility)
+        self.agent_class = agent_class or A2ATeamAgent
+        
         # Use config if provided, otherwise use individual parameters or defaults
         if config:
             self.config = config
@@ -506,17 +509,17 @@ class SKA2AAgent:
         self.status = "active"
         self.tasks = {}  # Store tasks by ID
         self.available_agents = {}  # Cache discovered agents
-        self.sk_agent = None
+        self.agent = None
         
         # For backward compatibility, expose a2a_agent_url as single URL
         self.a2a_agent_url = self.a2a_agent_urls[0] if self.a2a_agent_urls else DEFAULT_A2A_AGENT_URL
         
-    async def initialize_sk_agent(self):
+    async def initialize_agent(self):
         """Initialize the SK agent with A2A agents"""
         try:
-            # Create SK agent with A2A agents
+            # Create agent with A2A agents using injected agent class
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.sk_agent = SKAgent(
+            self.agent = self.agent_class(
                 model=self.model,
                 agent_name=valid_agent_name,
                 agent_description=self.description,
@@ -525,7 +528,7 @@ class SKA2AAgent:
             
             # Pass A2A URLs directly to SK agent for direct plugin connection
             a2a_urls = self.a2a_agent_urls
-            await self.sk_agent.create(a2a_urls)
+            await self.agent.create(a2a_urls)
             
             # For compatibility, populate available_agents from connected plugins
             self.available_agents = {}
@@ -542,13 +545,13 @@ class SKA2AAgent:
             logger.error(f"Failed to initialize SK agent: {e}")
             # Fallback: create agent without A2A agents
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.sk_agent = SKAgent(
+            self.agent = self.agent_class(
                 model=self.model,
                 agent_name=valid_agent_name,
                 agent_description=self.description,
                 agent_instruction=self.system_prompt
             )
-            await self.sk_agent.create([])
+            await self.agent.create([])
         
     async def discover_a2a_agents(self) -> Dict[str, Any]:
         """Discover available capabilities from all configured A2A agents"""
@@ -561,7 +564,7 @@ class SKA2AAgent:
         try:
             async with aiohttp.ClientSession() as session:
                 # Use current SK agent URLs if available, otherwise use static config
-                a2a_urls_to_discover = self.sk_agent.get_agent_list() if self.sk_agent else self.a2a_agent_urls
+                a2a_urls_to_discover = self.agent.get_agent_list() if self.agent else self.a2a_agent_urls
                 
                 # Iterate through all current A2A agent URLs
                 for a2a_url in a2a_urls_to_discover:
@@ -612,7 +615,7 @@ class SKA2AAgent:
                 
                 # Summary
                 successful_agents = len([r for r in discovery_results if r["success"]])
-                a2a_urls_to_discover = self.sk_agent.get_agent_list() if self.sk_agent else self.a2a_agent_urls
+                a2a_urls_to_discover = self.agent.get_agent_list() if self.agent else self.a2a_agent_urls
                 total_agents = len(a2a_urls_to_discover)
                 
                 logger.info(f"Agent discovery complete: {total_capabilities_discovered} capabilities from {successful_agents}/{total_agents} agents")
@@ -636,12 +639,12 @@ class SKA2AAgent:
         """Process a task using SK agent"""
         
         # Ensure SK agent is initialized
-        if not self.sk_agent:
-            await self.initialize_sk_agent()
+        if not self.agent:
+            await self.initialize_agent()
         
         try:
             # Use SK agent to process the message
-            response = await self.sk_agent.invoke(task_message, session_id)
+            response = await self.agent.invoke(task_message, session_id)
             return response
             
         except Exception as e:
@@ -763,8 +766,8 @@ async def get_agent_card():
     """A2A Agent Card discovery endpoint (A2A spec compliant)"""
     
     # Ensure agent is initialized
-    if not agent.sk_agent:
-        await agent.initialize_sk_agent()
+    if not agent.agent:
+        await agent.initialize_agent()
     
     # Build skills dynamically from discovered agents
     skills = []
@@ -908,10 +911,10 @@ async def handle_jsonrpc(request):
                 })
             
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            success = await agent.sk_agent.add_agent(agent_url)
+            success = await agent.agent.add_agent(agent_url)
             
             # Update the agent's available_agents cache to refresh agent card
             if success:
@@ -941,10 +944,10 @@ async def handle_jsonrpc(request):
                 })
             
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            success = await agent.sk_agent.remove_agent(agent_url)
+            success = await agent.agent.remove_agent(agent_url)
             
             # Update the agent's available_agents cache to refresh agent card
             if success:
@@ -963,10 +966,10 @@ async def handle_jsonrpc(request):
             
         elif method == "agents/list":
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            agent_list = agent.sk_agent.get_agent_list()
+            agent_list = agent.agent.get_agent_list()
             return JSONResponse({
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -978,10 +981,10 @@ async def handle_jsonrpc(request):
             
         elif method == "agents/history":
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            history = agent.sk_agent.get_agent_history()
+            history = agent.agent.get_agent_history()
             return JSONResponse({
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -1042,13 +1045,15 @@ if __name__ == "__main__":
     
     # Create global agent instance (config takes precedence, args override)
     if config:
-        agent = SKA2AAgent(
+        agent = A2AAgentServer(
+            agent_class=A2ATeamAgent,  # Explicitly inject A2A Team agent
             config=config,
             a2a_agent_url=args.a2a_url if args.a2a_url != DEFAULT_A2A_AGENT_URL else None,
             port=args.port if args.port != DEFAULT_AGENT_PORT else None
         )
     else:
-        agent = SKA2AAgent(
+        agent = A2AAgentServer(
+            agent_class=A2ATeamAgent,  # Explicitly inject A2A Team agent
             agent_id=args.agent_id,
             agent_name=args.agent_name,
             a2a_agent_url=args.a2a_url,
@@ -1078,7 +1083,7 @@ if __name__ == "__main__":
     
     # Initialize the SK agent
     import asyncio
-    asyncio.run(agent.initialize_sk_agent())
+    asyncio.run(agent.initialize_agent())
     logger.info("🚀 SK agent initialized successfully")
     
     # Run the server

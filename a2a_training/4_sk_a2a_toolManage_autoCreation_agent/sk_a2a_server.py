@@ -315,7 +315,7 @@ class StatefulMCPClient:
             return None
 
 
-class SKAgent:
+class A2AAgent:
     """Semantic Kernel-powered agent"""
     
     def __init__(self, model="gpt-3.5-turbo", agent_name="SK Agent", 
@@ -568,7 +568,7 @@ class SKAgent:
         self._tool_plugins.clear()
         logger.info("SKAgent cleanup completed")
 
-class SKA2AAgent:
+class A2AAgentServer:
     """SK-powered A2A Agent with dynamic MCP tool discovery"""
     
     def __init__(self, config: Optional[AgentConfig] = None, agent_id: str = None, 
@@ -609,12 +609,12 @@ class SKA2AAgent:
         # For backward compatibility, expose mcp_tool_url as single URL
         self.mcp_tool_url = self.mcp_tool_urls[0] if self.mcp_tool_urls else DEFAULT_MCP_TOOL_URL
         
-    async def initialize_sk_agent(self):
+    async def initialize_agent(self):
         """Initialize the SK agent with MCP tools (skip startup discovery, use direct plugin connection)"""
         try:
             # Create SK agent with MCP tools (skip startup discovery - use working A2A pattern)
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.sk_agent = SKAgent(
+            self.sk_agent = A2AAgent(
                 model=self.model,
                 agent_name=valid_agent_name,
                 agent_description=self.description,
@@ -640,7 +640,7 @@ class SKA2AAgent:
             logger.error(f"Failed to initialize SK agent: {e}")
             # Fallback: create agent without MCP tools
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.sk_agent = SKAgent(
+            self.sk_agent = A2AAgent(
                 model=self.model,
                 agent_name=valid_agent_name,
                 agent_description=self.description,
@@ -746,9 +746,9 @@ class SKA2AAgent:
     async def process_task(self, task_message: str, session_id: str) -> str:
         """Process a task using SK agent"""
         
-        # Ensure SK agent is initialized
+        # Ensure agent is initialized
         if not self.sk_agent:
-            await self.initialize_sk_agent()
+            await self.initialize_agent()
         
         try:
             # Use SK agent to process the message
@@ -900,7 +900,7 @@ async def get_agent_card(request):
             "agent_id": agent.agent_id,
             "status": agent.status,
             "llm_model": agent.model,
-            "sk_powered": True,
+            "a2a_powered": True,
             "personality": {
                 "style": getattr(agent.config, 'style', 'helpful and friendly') if agent.config else "helpful and friendly",
                 "tone": getattr(agent.config, 'tone', 'professional') if agent.config else "professional",
@@ -1138,13 +1138,13 @@ if __name__ == "__main__":
     
     # Create global agent instance (config takes precedence, args override)
     if config:
-        agent = SKA2AAgent(
+        agent = A2AAgentServer(
             config=config,
             mcp_tool_url=args.mcp_url if args.mcp_url != DEFAULT_MCP_TOOL_URL else None,
             port=args.port if args.port != DEFAULT_AGENT_PORT else None
         )
     else:
-        agent = SKA2AAgent(
+        agent = A2AAgentServer(
             agent_id=args.agent_id,
             agent_name=args.agent_name,
             mcp_tool_url=args.mcp_url,
@@ -1174,8 +1174,8 @@ if __name__ == "__main__":
     
     # Initialize the SK agent
     import asyncio
-    asyncio.run(agent.initialize_sk_agent())
-    logger.info("🚀 SK agent initialized successfully")
+    asyncio.run(agent.initialize_agent())
+    logger.info("🚀 Agent initialized successfully")
     
     # Run the server
     uvicorn.run(app, host="0.0.0.0", port=agent.port)

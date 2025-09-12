@@ -459,10 +459,13 @@ class ADKAgent:
         if self._tool_exit_stack:
             await self._tool_exit_stack.aclose()
 
-class ADKA2AAgent:
-    """ADK-powered A2A Agent with dynamic MCP tool discovery"""
+class A2AAgentServer:
+    """Framework-agnostic A2A Agent Server with injectable agent class"""
     
-    def __init__(self, config: Optional[AgentConfig] = None, agent_id: str = None, agent_name: str = None, mcp_tool_url: str = None, port: int = None):
+    def __init__(self, agent_class=None, config: Optional[AgentConfig] = None, agent_id: str = None, agent_name: str = None, mcp_tool_url: str = None, port: int = None):
+        # Store injectable agent class (defaults to ADKAgent for backward compatibility)
+        self.agent_class = agent_class or ADKAgent
+        
         # Use config if provided, otherwise use individual parameters or defaults
         if config:
             self.config = config
@@ -494,21 +497,21 @@ class ADKA2AAgent:
         self.status = "active"
         self.tasks = {}  # Store tasks by ID
         self.available_tools = {}  # Cache discovered tools
-        self.adk_agent = None
+        self.agent = None
         
         # For backward compatibility, expose mcp_tool_url as single URL
         self.mcp_tool_url = self.mcp_tool_urls[0] if self.mcp_tool_urls else DEFAULT_MCP_TOOL_URL
         
-    async def initialize_adk_agent(self):
+    async def initialize_agent(self):
         """Initialize the ADK agent with discovered MCP tools"""
         try:
             # Discover tools first
             await self.discover_mcp_tools()
             
-            # Create ADK agent with MCP tools
+            # Create agent with MCP tools using injected agent class
             # Convert agent name to valid identifier (replace spaces with underscores)
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.adk_agent = ADKAgent(
+            self.agent = self.agent_class(
                 agent_name=valid_agent_name,
                 agent_description="ADK-powered A2A training agent with MCP tool integration",
                 agent_instruction="You are a helpful assistant with access to various tools. Use the appropriate tools to answer user questions. When using tools, provide clear and helpful responses based on the tool results."
@@ -516,7 +519,7 @@ class ADKA2AAgent:
             
             # Initialize with all MCP URLs if tools were discovered
             mcp_urls = self.mcp_tool_urls if self.available_tools else []
-            await self.adk_agent.create(mcp_urls)
+            await self.agent.create(mcp_urls)
             
             logger.info(f"ADK agent initialized with {len(self.available_tools)} discovered tools")
             
@@ -524,12 +527,12 @@ class ADKA2AAgent:
             logger.error(f"Failed to initialize ADK agent: {e}")
             # Fallback: create agent without MCP tools
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.adk_agent = ADKAgent(
+            self.agent = self.agent_class(
                 agent_name=valid_agent_name,
                 agent_description="ADK-powered A2A training agent",
                 agent_instruction="You are a helpful assistant."
             )
-            await self.adk_agent.create([])
+            await self.agent.create([])
         
     async def discover_mcp_tools(self) -> Dict[str, Any]:
         """Discover available tools from all configured MCP servers"""
@@ -548,7 +551,7 @@ class ADKA2AAgent:
             
             async with aiohttp.ClientSession() as session:
                 # Use current ADK agent tool URLs if available, otherwise use static config
-                mcp_urls_to_discover = self.adk_agent.get_tool_list() if self.adk_agent else self.mcp_tool_urls
+                mcp_urls_to_discover = self.agent.get_tool_list() if self.agent else self.mcp_tool_urls
                 
                 # Iterate through all current MCP tool URLs
                 for mcp_url in mcp_urls_to_discover:
@@ -606,7 +609,7 @@ class ADKA2AAgent:
                 
                 # Summary
                 successful_servers = len([r for r in discovery_results if r["success"]])
-                mcp_urls_to_discover = self.adk_agent.get_tool_list() if self.adk_agent else self.mcp_tool_urls
+                mcp_urls_to_discover = self.agent.get_tool_list() if self.agent else self.mcp_tool_urls
                 total_servers = len(mcp_urls_to_discover)
                 
                 logger.info(f"Tool discovery complete: {total_tools_discovered} tools from {successful_servers}/{total_servers} servers")
@@ -629,13 +632,13 @@ class ADKA2AAgent:
     async def process_task(self, task_message: str, session_id: str) -> str:
         """Process a task using ADK agent"""
         
-        # Ensure ADK agent is initialized
-        if not self.adk_agent:
-            await self.initialize_adk_agent()
+        # Ensure agent is initialized
+        if not self.agent:
+            await self.initialize_agent()
         
         try:
             # Use ADK agent to process the message
-            response = await self.adk_agent.invoke(task_message, session_id)
+            response = await self.agent.invoke(task_message, session_id)
             return response
             
         except Exception as e:
@@ -780,8 +783,8 @@ async def get_agent_card(request):
     """A2A Agent Card discovery endpoint (A2A spec compliant)"""
     
     # Ensure agent is initialized
-    if not agent.adk_agent:
-        await agent.initialize_adk_agent()
+    if not agent.agent:
+        await agent.initialize_agent()
     
     # Build skills dynamically from discovered tools
     skills = []
@@ -820,7 +823,7 @@ async def get_agent_card(request):
             "agent_id": agent.agent_id,
             "status": agent.status,
             "llm_model": agent.model,
-            "adk_powered": True,
+            "a2a_powered": True,
             "personality": {
                 "style": getattr(agent.config, 'style', 'helpful and friendly') if agent.config else "helpful and friendly",
                 "tone": getattr(agent.config, 'tone', 'professional') if agent.config else "professional",
@@ -933,10 +936,10 @@ async def handle_jsonrpc(request):
                 })
             
             # Ensure ADK agent is initialized
-            if not agent.adk_agent:
-                await agent.initialize_adk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            success = await agent.adk_agent.add_tool(tool_url)
+            success = await agent.agent.add_tool(tool_url)
             
             # Update the agent's available_tools cache to refresh agent card
             if success:
@@ -966,10 +969,10 @@ async def handle_jsonrpc(request):
                 })
             
             # Ensure ADK agent is initialized
-            if not agent.adk_agent:
-                await agent.initialize_adk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            success = await agent.adk_agent.remove_tool(tool_url)
+            success = await agent.agent.remove_tool(tool_url)
             
             # Update the agent's available_tools cache to refresh agent card
             if success:
@@ -988,10 +991,10 @@ async def handle_jsonrpc(request):
             
         elif method == "tools/list":
             # Ensure ADK agent is initialized
-            if not agent.adk_agent:
-                await agent.initialize_adk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            tool_list = agent.adk_agent.get_tool_list()
+            tool_list = agent.agent.get_tool_list()
             return JSONResponse({
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -1003,10 +1006,10 @@ async def handle_jsonrpc(request):
             
         elif method == "tools/history":
             # Ensure ADK agent is initialized
-            if not agent.adk_agent:
-                await agent.initialize_adk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            history = agent.adk_agent.get_tool_history()
+            history = agent.agent.get_tool_history()
             return JSONResponse({
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -1067,13 +1070,15 @@ if __name__ == "__main__":
     
     # Create global agent instance (config takes precedence, args override)
     if config:
-        agent = ADKA2AAgent(
+        agent = A2AAgentServer(
+            agent_class=ADKAgent,  # Explicitly inject ADK agent
             config=config,
             mcp_tool_url=args.mcp_url if args.mcp_url != DEFAULT_MCP_TOOL_URL else None,
             port=args.port if args.port != DEFAULT_AGENT_PORT else None
         )
     else:
-        agent = ADKA2AAgent(
+        agent = A2AAgentServer(
+            agent_class=ADKAgent,  # Explicitly inject ADK agent
             agent_id=args.agent_id,
             agent_name=args.agent_name,
             mcp_tool_url=args.mcp_url,
@@ -1103,8 +1108,8 @@ if __name__ == "__main__":
     
     # Initialize the ADK agent
     import asyncio
-    asyncio.run(agent.initialize_adk_agent())
-    logger.info("🚀 ADK agent initialized successfully")
+    asyncio.run(agent.initialize_agent())
+    logger.info("🚀 Agent initialized successfully")
     
     # Run the server
     uvicorn.run(app, host="0.0.0.0", port=agent.port)

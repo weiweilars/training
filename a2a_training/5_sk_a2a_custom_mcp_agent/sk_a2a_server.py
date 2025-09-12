@@ -67,7 +67,8 @@ logger = logging.getLogger(__name__)
 async def parse_mcp_response(response) -> dict:
     """Parse HTTP response from MCP server (handles both JSON and SSE)"""
     if response.status != 200:
-        logger.error(f"MCP server returned status {response.status}")
+        response_text = await response.text()
+        logger.error(f"MCP server returned status {response.status}: {response_text}")
         return None
     
     try:
@@ -77,14 +78,42 @@ async def parse_mcp_response(response) -> dict:
         if 'application/json' in content_type:
             # Direct JSON response
             return await response.json()
-        else:
-            # SSE format or other - parse as text
+        elif 'text/event-stream' in content_type:
+            # SSE format - parse as text and look for data lines
             response_text = await response.text()
-            # Look for SSE data line
-            for line in response_text.split('\n'):
+            logger.debug(f"SSE Response: {response_text[:200]}...")
+            
+            # Parse SSE format - look for the last data line
+            data_lines = []
+            for line in response_text.strip().split('\n'):
                 if line.startswith('data: '):
-                    return json.loads(line[6:])  # Remove 'data: ' prefix
-            return None
+                    data_content = line[6:]  # Remove 'data: ' prefix
+                    if data_content and data_content != '[DONE]':
+                        try:
+                            data_lines.append(json.loads(data_content))
+                        except json.JSONDecodeError:
+                            logger.warning(f"Failed to parse SSE data line: {data_content}")
+            
+            # Return the last valid data line (usually the complete response)
+            if data_lines:
+                return data_lines[-1]
+            else:
+                logger.warning("No valid data lines found in SSE response")
+                return None
+        else:
+            # Try parsing as JSON anyway
+            try:
+                return await response.json()
+            except:
+                # Fallback to text parsing for SSE
+                response_text = await response.text()
+                for line in response_text.split('\n'):
+                    if line.startswith('data: '):
+                        try:
+                            return json.loads(line[6:])
+                        except:
+                            continue
+                return None
             
     except Exception as e:
         logger.error(f"Failed to parse MCP response: {e}")
@@ -488,11 +517,14 @@ class SKAgent:
         self._tool_plugins.clear()
         logger.info("SKAgent cleanup completed")
 
-class SKA2AAgent:
-    """SK-powered A2A Agent with dynamic MCP tool discovery"""
+class A2AAgentServer:
+    """Framework-agnostic A2A Agent Server with injectable agent class"""
     
-    def __init__(self, config: Optional[AgentConfig] = None, agent_id: str = None, 
+    def __init__(self, agent_class=None, config: Optional[AgentConfig] = None, agent_id: str = None, 
                  agent_name: str = None, mcp_tool_url: str = None, port: int = None):
+        # Store injectable agent class (defaults to SKAgent for backward compatibility)
+        self.agent_class = agent_class or SKAgent
+        
         # Use config if provided, otherwise use individual parameters or defaults
         if config:
             self.config = config
@@ -524,17 +556,17 @@ class SKA2AAgent:
         self.status = "active"
         self.tasks = {}  # Store tasks by ID
         self.available_tools = {}  # Cache discovered tools
-        self.sk_agent = None
+        self.agent = None
         
         # For backward compatibility, expose mcp_tool_url as single URL
         self.mcp_tool_url = self.mcp_tool_urls[0] if self.mcp_tool_urls else DEFAULT_MCP_TOOL_URL
         
-    async def initialize_sk_agent(self):
+    async def initialize_agent(self):
         """Initialize the SK agent with MCP tools (skip startup discovery, use direct plugin connection)"""
         try:
-            # Create SK agent with MCP tools (skip startup discovery - use working A2A pattern)
+            # Create agent with MCP tools using injected agent class (skip startup discovery - use working A2A pattern)
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.sk_agent = SKAgent(
+            self.agent = self.agent_class(
                 model=self.model,
                 agent_name=valid_agent_name,
                 agent_description=self.description,
@@ -543,7 +575,7 @@ class SKA2AAgent:
             
             # Pass MCP URLs directly to SK agent for direct plugin connection (working A2A pattern)
             mcp_urls = self.mcp_tool_urls
-            await self.sk_agent.create(mcp_urls)
+            await self.agent.create(mcp_urls)
             
             # For compatibility, populate available_tools from connected plugins
             self.available_tools = {}
@@ -560,13 +592,13 @@ class SKA2AAgent:
             logger.error(f"Failed to initialize SK agent: {e}")
             # Fallback: create agent without MCP tools
             valid_agent_name = self.name.replace(" ", "_").replace("-", "_")
-            self.sk_agent = SKAgent(
+            self.agent = self.agent_class(
                 model=self.model,
                 agent_name=valid_agent_name,
                 agent_description=self.description,
                 agent_instruction=self.system_prompt
             )
-            await self.sk_agent.create([])
+            await self.agent.create([])
         
     async def discover_mcp_tools(self) -> Dict[str, Any]:
         """Discover available tools from all configured MCP servers"""
@@ -585,7 +617,7 @@ class SKA2AAgent:
             
             async with aiohttp.ClientSession() as session:
                 # Use current SK agent tool URLs if available, otherwise use static config
-                mcp_urls_to_discover = self.sk_agent.get_tool_list() if self.sk_agent else self.mcp_tool_urls
+                mcp_urls_to_discover = self.agent.get_tool_list() if self.agent else self.mcp_tool_urls
                 
                 # Iterate through all current MCP tool URLs
                 for mcp_url in mcp_urls_to_discover:
@@ -643,7 +675,7 @@ class SKA2AAgent:
                 
                 # Summary
                 successful_servers = len([r for r in discovery_results if r["success"]])
-                mcp_urls_to_discover = self.sk_agent.get_tool_list() if self.sk_agent else self.mcp_tool_urls
+                mcp_urls_to_discover = self.agent.get_tool_list() if self.agent else self.mcp_tool_urls
                 total_servers = len(mcp_urls_to_discover)
                 
                 logger.info(f"Tool discovery complete: {total_tools_discovered} tools from {successful_servers}/{total_servers} servers")
@@ -667,12 +699,12 @@ class SKA2AAgent:
         """Process a task using SK agent"""
         
         # Ensure SK agent is initialized
-        if not self.sk_agent:
-            await self.initialize_sk_agent()
+        if not self.agent:
+            await self.initialize_agent()
         
         try:
             # Use SK agent to process the message
-            response = await self.sk_agent.invoke(task_message, session_id)
+            response = await self.agent.invoke(task_message, session_id)
             return response
             
         except Exception as e:
@@ -774,6 +806,43 @@ class SKA2AAgent:
                 }
             }
 
+    async def handle_send_task(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle legacy send-task method"""
+        task_id = params.get("id", str(uuid.uuid4()))
+        session_id = params.get("sessionId")
+        message = params.get("message", {})
+        
+        # Extract text from parts
+        text_parts = []
+        if "parts" in message:
+            for part in message["parts"]:
+                if "text" in part:
+                    text_parts.append(part["text"])
+        
+        message_text = " ".join(text_parts)
+        
+        # Process with SK agent
+        try:
+            response = await self.process_task(message_text, session_id or "default")
+            
+            return {
+                "id": task_id,
+                "status": {"state": "COMPLETED"},
+                "history": [
+                    message,
+                    {
+                        "role": "agent",
+                        "parts": [{"text": response}]
+                    }
+                ]
+            }
+        except Exception as e:
+            return {
+                "id": task_id,
+                "status": {"state": "FAILED"},
+                "error": str(e)
+            }
+
 # Create global agent instance
 agent = None
 
@@ -794,8 +863,8 @@ async def get_agent_card():
     """A2A Agent Card discovery endpoint (A2A spec compliant)"""
     
     # Ensure agent is initialized
-    if not agent.sk_agent:
-        await agent.initialize_sk_agent()
+    if not agent.agent:
+        await agent.initialize_agent()
     
     # Build skills dynamically from discovered tools
     skills = []
@@ -834,7 +903,7 @@ async def get_agent_card():
             "agent_id": agent.agent_id,
             "status": agent.status,
             "llm_model": agent.model,
-            "sk_powered": True,
+            "a2a_powered": True,
             "personality": {
                 "style": getattr(agent.config, 'style', 'helpful and friendly') if agent.config else "helpful and friendly",
                 "tone": getattr(agent.config, 'tone', 'professional') if agent.config else "professional",
@@ -925,6 +994,15 @@ async def handle_jsonrpc(request):
                 }
             })
             
+        elif method == "send-task":
+            # Legacy format
+            result = await agent.handle_send_task(params)
+            return JSONResponse({
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": result
+            })
+            
         elif method == "tools/add":
             tool_url = params.get("url")
             if not tool_url:
@@ -938,10 +1016,10 @@ async def handle_jsonrpc(request):
                 })
             
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            success = await agent.sk_agent.add_tool(tool_url)
+            success = await agent.agent.add_tool(tool_url)
             
             # Update the agent's available_tools cache to refresh agent card
             if success:
@@ -971,10 +1049,10 @@ async def handle_jsonrpc(request):
                 })
             
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            success = await agent.sk_agent.remove_tool(tool_url)
+            success = await agent.agent.remove_tool(tool_url)
             
             # Update the agent's available_tools cache to refresh agent card
             if success:
@@ -993,10 +1071,10 @@ async def handle_jsonrpc(request):
             
         elif method == "tools/list":
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            tool_list = agent.sk_agent.get_tool_list()
+            tool_list = agent.agent.get_tool_list()
             return JSONResponse({
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -1008,10 +1086,10 @@ async def handle_jsonrpc(request):
             
         elif method == "tools/history":
             # Ensure SK agent is initialized
-            if not agent.sk_agent:
-                await agent.initialize_sk_agent()
+            if not agent.agent:
+                await agent.initialize_agent()
                 
-            history = agent.sk_agent.get_tool_history()
+            history = agent.agent.get_tool_history()
             return JSONResponse({
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -1072,13 +1150,15 @@ if __name__ == "__main__":
     
     # Create global agent instance (config takes precedence, args override)
     if config:
-        agent = SKA2AAgent(
+        agent = A2AAgentServer(
+            agent_class=SKAgent,  # Explicitly inject SK agent
             config=config,
             mcp_tool_url=args.mcp_url if args.mcp_url != DEFAULT_MCP_TOOL_URL else None,
             port=args.port if args.port != DEFAULT_AGENT_PORT else None
         )
     else:
-        agent = SKA2AAgent(
+        agent = A2AAgentServer(
+            agent_class=SKAgent,  # Explicitly inject SK agent
             agent_id=args.agent_id,
             agent_name=args.agent_name,
             mcp_tool_url=args.mcp_url,
@@ -1108,7 +1188,7 @@ if __name__ == "__main__":
     
     # Initialize the SK agent
     import asyncio
-    asyncio.run(agent.initialize_sk_agent())
+    asyncio.run(agent.initialize_agent())
     logger.info("🚀 SK agent initialized successfully")
     
     # Run the server
