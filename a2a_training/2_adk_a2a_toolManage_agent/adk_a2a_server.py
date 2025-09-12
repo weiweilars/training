@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 class ADKAgent:
     """ADK-powered agent using Google's Agent Development Kit"""
     
-    def __init__(self, model="gemini-1.5-flash-latest", agent_name="ADK Agent", 
+    def __init__(self, model="gemini-2.5-flash", agent_name="ADK Agent", 
                  agent_description="ADK-powered agent", agent_instruction="You are a helpful assistant."):
         self._model = model
         self._name = agent_name
@@ -393,7 +393,7 @@ class ADKA2AAgent:
             self.adk_agent = ADKAgent(
                 agent_name=valid_agent_name,
                 agent_description="ADK-powered A2A training agent with MCP tool integration",
-                agent_instruction="You are a helpful assistant with access to various tools. Use the appropriate tools to answer user questions. When using tools, provide clear and helpful responses based on the tool results."
+                agent_instruction="You are a helpful assistant with access to various tools. IMPORTANT: When you have the appropriate tools available, always use them to answer questions. If a user asks for weather information and you have weather tools, use them. If they ask for mathematical calculations and you have calculator tools, use them. Only respond with 'I don't have the appropriate tools to answer this question.' when you genuinely do NOT have any relevant tools for the query. Do NOT refuse to use tools that you actually have available."
             )
             
             # Initialize with MCP URL if tools were discovered
@@ -409,7 +409,7 @@ class ADKA2AAgent:
             self.adk_agent = ADKAgent(
                 agent_name=valid_agent_name,
                 agent_description="ADK-powered A2A training agent",
-                agent_instruction="You are a helpful assistant."
+                agent_instruction="You are a helpful assistant. IMPORTANT: When you have the appropriate tools available, always use them to answer questions. If a user asks for weather information and you have weather tools, use them. If they ask for mathematical calculations and you have calculator tools, use them. Only respond with 'I don't have the appropriate tools to answer this question.' when you genuinely do NOT have any relevant tools for the query. Do NOT refuse to use tools that you actually have available."
             )
             await self.adk_agent.create([])
         

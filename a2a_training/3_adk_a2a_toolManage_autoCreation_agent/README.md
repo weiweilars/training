@@ -24,8 +24,8 @@ Each agent will have its own personality, description, tools, and behavior based
 | Config File | Agent Type | Description | Default Port | Tools |
 |-------------|------------|-------------|--------------|-------|
 | `agentA.yaml` | **Weather Specialist** | Expert in weather analysis and forecasting | 5010 | Weather MCP |
-| `agentB.yaml` | **File Manager** | Document management and file operations | 5011 | File MCP |
-| `agentC.yaml` | **Multi-Tool Assistant** | Versatile agent with multiple capabilities | 5012 | Weather + File MCPs |
+| `agentB.yaml` | **Calculator Agent** | Mathematical calculations and computations | 5011 | Calculator MCP |
+| `agentC.yaml` | **Multi-Tool Assistant** | Versatile agent with multiple capabilities | 5012 | Weather + Calculator MCPs |
 
 ## 🚀 Quick Start
 
@@ -36,10 +36,10 @@ Each agent will have its own personality, description, tools, and behavior based
 cd ../mcp_training
 
 # Start weather MCP tool (for agentA and agentC)
-python run_http.py weather --port 8004 &
+python run_http.py weather --port 8001 &
 
-# Start file MCP tool (for agentB and agentC)  
-python run_http.py file --port 8003 &
+# Start calculator MCP tool (for agentB and agentC)  
+python run_http.py calculator --port 8002 &
 ```
 
 ### 2. Install Dependencies
@@ -55,7 +55,7 @@ pip install -r requirements.txt
 # Weather Specialist Agent (professional, meteorology expert)
 python adk_a2a_server.py --config agentA.yaml
 
-# File Management Agent (organized, systematic file operations)
+# Calculator Agent (precise, mathematical calculations)
 python adk_a2a_server.py --config agentB.yaml  
 
 # Multi-Tool Assistant (versatile, general-purpose helper)
@@ -78,15 +78,15 @@ curl -X POST http://localhost:5010 \
     "id": "1"
   }' | jq
 
-# Test File Manager Agent (port 5011)  
+# Test Calculator Agent (port 5011)  
 curl -X POST http://localhost:5011 \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
     "method": "message/send",
     "params": {
-      "message": {"content": "Can you list the files in the current directory?"},
-      "sessionId": "test-files"
+      "message": {"content": "Can you calculate the square root of 144 and then multiply it by 5?"},
+      "sessionId": "test-calc"
     },
     "id": "1"
   }' | jq
@@ -117,8 +117,8 @@ agent:
   # Default MCP Tools
   tools:
     default_urls:
-      - "http://localhost:8004/mcp"  # Weather MCP
-      - "http://localhost:8003/mcp"  # File MCP
+      - "http://localhost:8001/mcp"  # Weather MCP
+      - "http://localhost:8002/mcp"  # Calculator MCP
     
   # Server Configuration
   server:
@@ -140,14 +140,14 @@ agent:
 python adk_a2a_server.py --config agentA.yaml
 
 # Override specific values
-python adk_a2a_server.py --config agentA.yaml --port 5020 --mcp-url http://localhost:8005/mcp
+python adk_a2a_server.py --config agentA.yaml --port 5020 --mcp-url http://localhost:8002/mcp
 ```
 
 ### Legacy Mode (Individual Parameters)
 
 ```bash
 # Traditional command line arguments (backward compatible)
-python adk_a2a_server.py --agent-name "My Custom Agent" --port 5015 --mcp-url http://localhost:8004/mcp
+python adk_a2a_server.py --agent-name "My Custom Agent" --port 5015 --mcp-url http://localhost:8001/mcp
 ```
 
 ## 🎭 Agent Personality Examples
@@ -159,18 +159,18 @@ python adk_a2a_server.py --agent-name "My Custom Agent" --port 5015 --mcp-url ht
 - **Greeting**: "Hello! I'm your Weather Specialist Agent. I can help you with weather forecasts, current conditions, temperature conversions, and climate analysis."
 - **Behavior**: Focuses on providing accurate weather information
 
-### File Management Agent (`agentB.yaml`)
+### Calculator Agent (`agentB.yaml`)
 
-- **Personality**: Organized and systematic
-- **Expertise**: File system management and document organization
-- **Greeting**: "Hi! I'm your File Management Agent. I can help you with file operations, document organization, reading files, and managing your file system."
-- **Behavior**: Emphasizes security and asks for confirmation before changes
+- **Personality**: Precise and analytical
+- **Expertise**: Mathematics and computational analysis
+- **Greeting**: "Hi! I'm your Calculator Agent. I can help you with mathematical calculations, solve equations, evaluate expressions, and perform various computational tasks."
+- **Behavior**: Provides accurate mathematical results and shows calculation steps
 
 ### Multi-Tool Assistant (`agentC.yaml`)
 
 - **Personality**: Versatile and adaptive
 - **Expertise**: General assistance with specialized tools
-- **Greeting**: "Hello! I'm your Multi-Tool Assistant. I can help with weather information, file management, and a wide variety of tasks using my comprehensive toolset."
+- **Greeting**: "Hello! I'm your Multi-Tool Assistant. I can help with weather information, mathematical calculations, and a wide variety of tasks using my comprehensive toolset."
 - **Behavior**: Selects appropriate tools based on user needs
 
 ## 🔧 Testing Your Configuration
@@ -221,8 +221,8 @@ curl -X POST http://localhost:5010 \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/add",
-    "params": {"url": "http://localhost:8003/mcp"},
-    "id": "add-files"
+    "params": {"url": "http://localhost:8002/mcp"},
+    "id": "add-calc"
   }'
 
 # Remove an MCP tool dynamically  
@@ -231,8 +231,8 @@ curl -X POST http://localhost:5010 \
   -d '{
     "jsonrpc": "2.0", 
     "method": "tools/remove",
-    "params": {"url": "http://localhost:8003/mcp"},
-    "id": "remove-files"
+    "params": {"url": "http://localhost:8002/mcp"},
+    "id": "remove-calc"
   }'
 
 # List current tools
@@ -288,15 +288,70 @@ Each configuration-driven agent is fully A2A protocol compliant with these endpo
 | `test_agent_card_updates.py` | Agent card updates | Tests that agent cards update when tools are added/removed |
 | `test_multi_agent_creation.py` | Multi-agent creation | Creates multiple agent types and verifies their individual configurations |
 
+## 🧹 Cleanup Management
+
+### Automated Cleanup Script
+
+The `cleanup.sh` script helps manage running processes during development and testing:
+
+```bash
+# Clean up everything (MCP tools + A2A agents)
+./cleanup.sh
+
+# Clean up only MCP tool servers
+./cleanup.sh tools
+
+# Clean up only A2A agent servers  
+./cleanup.sh agents
+
+# Show help and port configuration
+./cleanup.sh help
+```
+
+### Port Management
+
+| Component | Port | Description |
+|-----------|------|-------------|
+| **MCP Tools** | | |
+| Weather MCP | 8001 | Weather data and forecasting |
+| Calculator MCP | 8002 | Mathematical calculations |
+| **A2A Agents** | | |
+| Weather Specialist | 5010 | Agent A (agentA.yaml) |
+| Calculator Agent | 5011 | Agent B (agentB.yaml) |
+| Multi-Tool Assistant | 5012 | Agent C (agentC.yaml) |
+
+### Cleanup Features
+
+- ✅ **Smart Process Detection** - Uses `lsof` to find processes on ports
+- ✅ **Graceful Termination** - Tries `SIGTERM` first, then `SIGKILL` if needed
+- ✅ **Port Verification** - Confirms ports are actually freed
+- ✅ **Selective Cleanup** - Clean tools, agents, or both
+- ✅ **Colorful Output** - Clear status indicators and progress
+
+### Troubleshooting
+
+If ports are still in use after cleanup:
+
+```bash
+# Check what's using a specific port
+lsof -i :5010
+
+# Manual kill (replace PID with actual process ID)
+kill -9 <PID>
+
+# Check all our ports at once
+lsof -i :8001 -i :8002 -i :5010 -i :5011 -i :5012
+```
+
 ## 🚀 Summary
 
 You can now create unlimited specialized agents with **both** configuration-driven setup **and** dynamic tool management:
 
 ```bash
-# Create a Weather Specialist that can dynamically add file tools
+# Create a Weather Specialist that can dynamically add calculator tools
 python adk_a2a_server.py --config agentA.yaml
 
-# Create a File Manager that can dynamically add weather tools  
+# Create a Calculator Agent that can dynamically add weather tools  
 python adk_a2a_server.py --config agentB.yaml
 
 # All agents support runtime tool changes while maintaining their configured personalities

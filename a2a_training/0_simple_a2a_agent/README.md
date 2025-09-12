@@ -41,7 +41,7 @@ This implementation is compliant with the official A2A (Agent2Agent) protocol sp
    cd ../mcp_training
    
    # Start weather MCP tool in stateless mode
-   STATELESS_HTTP=true python run_http.py weather --port 8002
+   STATELESS_HTTP=true python run_http.py weather --port 8001
    ```
 
 2. **Install A2A Agent Dependencies**:
@@ -56,14 +56,14 @@ This implementation is compliant with the official A2A (Agent2Agent) protocol sp
 # Navigate to the agent folder
 cd simple_a2a_agent
 
-# Default settings (connects to weather MCP on port 8002)
+# Default settings (connects to weather MCP on port 8001)
 python simple_a2a_server.py
 
 # With custom configuration
-python simple_a2a_server.py --mcp-url http://localhost:8002/mcp --port 5001
+python simple_a2a_server.py --mcp-url http://localhost:8001/mcp --port 5001
 
 # With environment variables
-MCP_TOOL_URL=http://localhost:8002/mcp python simple_a2a_server.py
+MCP_TOOL_URL=http://localhost:8001/mcp python simple_a2a_server.py
 ```
 
 The A2A agent server will start on `http://localhost:5001` by default.
@@ -185,7 +185,7 @@ The agent automatically discovers what tools are available from the connected MC
 python simple_a2a_server.py --help
 ```
 
-- `--mcp-url`: MCP tool URL (default: `http://localhost:8002/mcp`)
+- `--mcp-url`: MCP tool URL (default: `http://localhost:8001/mcp`)
 - `--agent-id`: Agent ID (default: `simple-a2a-training-agent`)
 - `--agent-name`: Agent name (default: `Simple A2A Training Agent`)
 - `--port`: Server port (default: `5001`)

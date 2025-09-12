@@ -33,12 +33,12 @@ cd ../../mcp_training
 # Note: The MCP server requires fastmcp (should already be installed in mcp_training)
 # If not installed: pip install fastmcp
 
-python run_http.py weather --port 8002
+python run_http.py weather --port 8001
 
 # You should see:
 # FastMCP 2.0
-# Server URL: http://localhost:8002/mcp
-# Uvicorn running on http://localhost:8002
+# Server URL: http://localhost:8001/mcp
+# Uvicorn running on http://localhost:8001
 ```
 
 ### Step 3: Start ADK A2A Agent
@@ -46,12 +46,12 @@ python run_http.py weather --port 8002
 ```bash
 # Terminal 2: Start ADK agent with MCP tools
 cd ../a2a_training/adk_a2a_agent
-python adk_a2a_server.py --mcp-url http://localhost:8002/mcp --port 5003
+python adk_a2a_server.py --mcp-url http://localhost:8001/mcp --port 5003
 
 # You should see:
 # Agent ID: adk-a2a-training-agent
 # Agent Name: ADK A2A Training Agent
-# MCP Tool URL: http://localhost:8002/mcp
+# MCP Tool URL: http://localhost:8001/mcp
 # Port: 5003
 # INFO: Discovered 3 MCP tools: ['get_current_weather', 'get_weather_forecast', 'convert_temperature']
 ```
@@ -143,7 +143,7 @@ from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StreamableHTTPConn
 async def test():
     print("Connecting to MCP server...")
     toolset = MCPToolset(
-        connection_params=StreamableHTTPConnectionParams(url="http://localhost:8002/mcp")
+        connection_params=StreamableHTTPConnectionParams(url="http://localhost:8001/mcp")
     )
     tools = await toolset.get_tools()
     print(f"Found {len(tools)} tools - SUCCESS!")
@@ -236,7 +236,7 @@ curl http://localhost:5003/.well-known/agent-card.json | python -m json.tool
 
 ### Test 3: Direct MCP Server Test
 ```bash
-curl -X POST http://localhost:8002/mcp \
+curl -X POST http://localhost:8001/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'

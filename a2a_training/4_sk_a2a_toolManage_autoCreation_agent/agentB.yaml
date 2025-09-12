@@ -19,7 +19,7 @@ agent:
   # Default MCP Tools
   tools:
     default_urls:
-      - "http://localhost:8003/mcp"  # File MCP server
+      - "http://localhost:8000/mcp"  # File MCP server (port 8000)
     
   # Server Configuration
   server:

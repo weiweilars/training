@@ -3,12 +3,12 @@ agent:
   id: "multi-tool-assistant"
   name: "Multi-Tool Assistant Agent"
   version: "1.0.0"
-  description: "A versatile AI agent equipped with multiple tools for weather, file management, and general assistance. Perfect for users who need a comprehensive digital assistant."
+  description: "A versatile AI agent equipped with multiple tools for weather, calculations, and general assistance. Perfect for users who need a comprehensive digital assistant."
   
   # Agent Card Properties
   card:
-    greeting: "Hello! I'm your Multi-Tool Assistant. I can help with weather information, file management, and a wide variety of tasks using my comprehensive toolset."
-    instructions: "I can assist with weather forecasts, file operations, data analysis, and general queries. Just tell me what you need help with and I'll use the appropriate tools to assist you."
+    greeting: "Hello! I'm your Multi-Tool Assistant. I can help with weather information, mathematical calculations, and a wide variety of tasks using my comprehensive toolset."
+    instructions: "I can assist with weather forecasts, mathematical calculations, data analysis, and general queries. Just tell me what you need help with and I'll use the appropriate tools to assist you."
     
   # Agent Personality & Behavior
   personality:
@@ -19,8 +19,8 @@ agent:
   # Default MCP Tools - Multiple tools for versatility
   tools:
     default_urls:
-      - "http://localhost:8004/mcp"  # Weather MCP server
-      - "http://localhost:8003/mcp"  # File MCP server
+      - "http://localhost:8001/mcp"  # Weather MCP server (port 8001)
+      - "http://localhost:8002/mcp"  # Calculator MCP server (port 8002)
     
   # Server Configuration
   server:
@@ -29,5 +29,5 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
-    system_prompt: "You are a multi-tool assistant AI agent with access to weather and file management tools. Help users with a wide range of tasks by selecting and using the most appropriate tools for their needs. Be versatile and adaptive in your responses."
+    model: "gemini-2.5-flash"
+    system_prompt: "You are a multi-tool assistant AI agent with access to weather and calculator tools. Help users with a wide range of tasks by selecting and using the most appropriate tools for their needs. Be versatile and adaptive in your responses."

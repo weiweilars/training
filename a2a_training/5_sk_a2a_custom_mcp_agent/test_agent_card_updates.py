@@ -109,9 +109,9 @@ async def test_agent_card_updates():
         initial_skills = [skill.get('name') for skill in initial_card.get('skills', [])]
         print_success(f"Initial skills: {initial_skills}")
         
-        # Step 2: Add file tool
-        print_info("Step 2: Adding file tool...")
-        add_result = await add_tool(session, port, "http://localhost:8003/mcp")
+        # Step 2: Add calculator tool
+        print_info("Step 2: Adding calculator tool...")
+        add_result = await add_tool(session, port, "http://localhost:8002/mcp")
         
         if add_result:
             print_success(f"Add tool result: {add_result}")
@@ -125,22 +125,22 @@ async def test_agent_card_updates():
                 updated_skills = [skill.get('name') for skill in updated_card.get('skills', [])]
                 print_success(f"Updated skills after adding: {updated_skills}")
                 
-                # Check if file tools were added
-                file_tools = ['list_files', 'read_file', 'write_file']
-                file_tools_found = any(tool in updated_skills for tool in file_tools)
+                # Check if calculator tools were added
+                calc_tools = ['basic_math', 'advanced_math', 'evaluate_expression']
+                calc_tools_found = any(tool in updated_skills for tool in calc_tools)
                 
-                if file_tools_found:
-                    print_success("✨ Agent card successfully updated with new file tools!")
+                if calc_tools_found:
+                    print_success("✨ Agent card successfully updated with new calculator tools!")
                 else:
-                    print_error("Agent card was not updated with file tools")
+                    print_error("Agent card was not updated with calculator tools")
             else:
                 print_error("Failed to get updated agent card")
         else:
             print_error("Failed to add tool")
         
-        # Step 3: Remove file tool
-        print_info("Step 3: Removing file tool...")
-        remove_result = await remove_tool(session, port, "http://localhost:8003/mcp")
+        # Step 3: Remove calculator tool
+        print_info("Step 3: Removing calculator tool...")
+        remove_result = await remove_tool(session, port, "http://localhost:8002/mcp")
         
         if remove_result:
             print_success(f"Remove tool result: {remove_result}")
@@ -154,14 +154,14 @@ async def test_agent_card_updates():
                 final_skills = [skill.get('name') for skill in final_card.get('skills', [])]
                 print_success(f"Final skills after removing: {final_skills}")
                 
-                # Check if file tools were removed
-                file_tools = ['list_files', 'read_file', 'write_file']
-                file_tools_found = any(tool in final_skills for tool in file_tools)
+                # Check if calculator tools were removed
+                calc_tools = ['basic_math', 'advanced_math', 'evaluate_expression']
+                calc_tools_found = any(tool in final_skills for tool in calc_tools)
                 
-                if not file_tools_found:
-                    print_success("✨ Agent card successfully updated - file tools removed!")
+                if not calc_tools_found:
+                    print_success("✨ Agent card successfully updated - calculator tools removed!")
                 else:
-                    print_error("Agent card was not updated - file tools still present")
+                    print_error("Agent card was not updated - calculator tools still present")
                     
                 # Check if we're back to initial state
                 if set(final_skills) == set(initial_skills):

@@ -58,21 +58,19 @@ GOOGLE_API_KEY=your_google_api_key_here
 # Navigate to MCP training directory
 cd ../mcp_training
 
-# Start all three MCP tools for comprehensive testing
-python run_http.py weather --port 8004 &      # Weather operations
-python run_http.py file --port 8003 &         # File operations  
-python run_http.py calculator --port 8005 &   # Mathematical calculations
+# Start MCP tools for comprehensive testing
+python run_http.py weather --port 8001 &      # Weather operations
+python run_http.py calculator --port 8002 &   # Mathematical calculations
 
 # Wait a moment for servers to start
 sleep 2
 
 # Verify servers are running
-curl -s http://localhost:8004/mcp >/dev/null && echo "✅ Weather MCP running"
-curl -s http://localhost:8003/mcp >/dev/null && echo "✅ File MCP running" 
-curl -s http://localhost:8005/mcp >/dev/null && echo "✅ Calculator MCP running"
+curl -s http://localhost:8001/mcp >/dev/null && echo "✅ Weather MCP running"
+curl -s http://localhost:8002/mcp >/dev/null && echo "✅ Calculator MCP running"
 ```
 
-**Note**: All three tools support dynamic addition/removal for comprehensive tool management testing.
+**Note**: Both tools support dynamic addition/removal for comprehensive tool management testing.
 
 ### 3. Install ADK A2A Agent Dependencies
 
@@ -89,14 +87,14 @@ pip install -r requirements.txt
 # Navigate to the agent folder
 cd 2_adk_a2a_toolManage_agent
 
-# Default settings (connects to weather MCP on port 8004, uses port 5002)
-python adk_a2a_server.py --mcp-url http://localhost:8004/mcp
+# Default settings (connects to calculator MCP on port 8002, uses port 5002)
+python adk_a2a_server.py --mcp-url http://localhost:8002/mcp
 
-# With custom configuration
-python adk_a2a_server.py --mcp-url http://localhost:8004/mcp --port 5002
+# With custom configuration  
+python adk_a2a_server.py --mcp-url http://localhost:8002/mcp --port 5002
 
 # With environment variables
-MCP_TOOL_URL=http://localhost:8004/mcp python adk_a2a_server.py
+MCP_TOOL_URL=http://localhost:8002/mcp python adk_a2a_server.py
 ```
 
 The ADK A2A agent server will start on `http://localhost:5002` by default.
@@ -123,7 +121,7 @@ RESPONSE=$(curl -s -X POST http://localhost:5002 \
     "method": "message/send",
     "params": {
       "message": {
-        "content": "What is the weather like in Tokyo? Please provide a detailed analysis."
+        "content": "Can you calculate the square root of 144 and then multiply it by 5?"
       },
       "sessionId": "session-123"
     }
@@ -175,7 +173,7 @@ curl -X POST http://localhost:5002 \
 
 #### Add Tool
 ```bash
-# Add a new MCP tool dynamically
+# Add a new MCP tool dynamically (weather tool)
 curl -X POST http://localhost:5002 \
   -H "Content-Type: application/json" \
   -d '{
@@ -183,14 +181,14 @@ curl -X POST http://localhost:5002 \
     "id": "add-tool-test",
     "method": "tools/add",
     "params": {
-      "url": "http://localhost:8003/mcp"
+      "url": "http://localhost:8001/mcp"
     }
   }' | python -m json.tool
 ```
 
 #### Remove Tool
 ```bash
-# Remove an MCP tool dynamically
+# Remove an MCP tool dynamically (weather tool)
 curl -X POST http://localhost:5002 \
   -H "Content-Type: application/json" \
   -d '{
@@ -198,7 +196,7 @@ curl -X POST http://localhost:5002 \
     "id": "remove-tool-test", 
     "method": "tools/remove",
     "params": {
-      "url": "http://localhost:8003/mcp"
+      "url": "http://localhost:8001/mcp"
     }
   }' | python -m json.tool
 ```
@@ -235,17 +233,17 @@ curl -X POST http://localhost:5002 \
   "history": [
     {
       "action": "add",
-      "url": "http://localhost:8003/mcp",
+      "url": "http://localhost:8001/mcp",
       "timestamp": "2025-09-08T16:27:34.179409",
       "session_preserved": true,
       "tool_descriptions": [
         {
-          "name": "list_files",
-          "description": "List files in a directory..."
+          "name": "get_current_weather",
+          "description": "Get current weather for cities..."
         },
         {
-          "name": "read_file", 
-          "description": "Read file contents..."
+          "name": "convert_temperature", 
+          "description": "Convert temperature between units..."
         }
       ]
     }
@@ -262,10 +260,9 @@ python test_session_continuity.py
 ```
 
 This test script demonstrates:
-- **Starting with no tools**: Shows base LLM capabilities
-- **Adding weather tool**: Demonstrates tool integration  
-- **Adding file tool**: Shows multi-tool capability
-- **Removing tools**: Shows graceful capability reduction
+- **Starting with calculator tool**: Shows base mathematical capabilities
+- **Adding weather tool**: Demonstrates multi-tool integration  
+- **Removing weather tool**: Shows graceful capability reduction
 - **Session preservation**: Maintains context across all changes
 - **Complete audit trail**: Tracks all tool operations
 
@@ -273,10 +270,9 @@ This test script demonstrates:
 ```
 🧪 Testing Dynamic Tool Management and Capability Changes
 🎯 CAPABILITY CHANGE SUMMARY:
-   NO TOOLS:      Weather ❌ | Files ❌
-   WEATHER TOOL:  Weather ✅ | Files ❌  
-   BOTH TOOLS:    Weather ✅ | Files ❌*
-   WEATHER ONLY:  Weather ✅ | Files ❌
+   CALCULATOR:       Calculator ✅ | Weather ❌
+   BOTH TOOLS:       Calculator ✅ | Weather ✅  
+   CALCULATOR ONLY:  Calculator ✅ | Weather ❌
 🎉 Dynamic tool management working perfectly!
 ```
 
@@ -295,34 +291,29 @@ The ADK agent provides sophisticated conversational capabilities:
 
 ### Example Conversations
 
-**Weather Analysis:**
-- User: "What's the weather in Stockholm and what should I wear?"
-- Agent: Uses weather tool, then provides clothing recommendations based on conditions
+**Mathematical Analysis:**
+- User: "Calculate the area of a circle with radius 5 and tell me what it means"
+- Agent: Uses calculator tool, then provides contextual explanation
 
 **Tool Explanation:**
 - User: "What can you help me with?"  
 - Agent: Lists available tools and explains capabilities in natural language
 
 **Multi-step Reasoning:**
-- User: "Compare the weather in London and Tokyo"
-- Agent: Makes multiple tool calls and provides comparative analysis
+- User: "Calculate 25% of 200, then find the square root of that result"
+- Agent: Makes multiple calculations and provides step-by-step explanation
 
 ### Currently Available MCP Tools
 
-#### Weather MCP Server (port 8004)
-1. **get_current_weather**: Get current weather for cities
-2. **get_weather_forecast**: Get weather forecast for specified days  
-3. **convert_temperature**: Convert temperature between units
-
-#### File MCP Server (port 8003)
-1. **list_files**: List files in a directory
-2. **read_file**: Read contents of a file
-3. **write_file**: Write content to a file
-
-#### Calculator MCP Server (port 8001)
+#### Calculator MCP Server (port 8002) - Default
 1. **basic_math**: Perform basic mathematical operations (+, -, *, /, %, ^)
 2. **advanced_math**: Advanced math functions (sqrt, sin, cos, tan, log, ln, exp, abs, ceil, floor)
 3. **evaluate_expression**: Safely evaluate mathematical expressions
+
+#### Weather MCP Server (port 8001) - Dynamic Addition
+1. **get_current_weather**: Get current weather for cities
+2. **get_weather_forecast**: Get weather forecast for specified days  
+3. **convert_temperature**: Convert temperature between units
 
 #### General Capabilities
 - **Advanced conversation**: LLM-powered dialogue with context awareness
@@ -420,8 +411,61 @@ This implementation includes a comprehensive test script:
 ### **test_session_continuity.py** - Session Preservation and Tool Management Testing
 - Tests how conversation context is maintained across tool changes
 - Demonstrates dynamic tool add/remove operations with session preservation
-- Shows intelligent conversation flow (weather → calculation) across tool changes
+- Shows intelligent conversation flow (calculation → weather) across tool changes
 - Complete audit trail with detailed history tracking
+
+## 🧹 Cleanup Management
+
+### Automated Cleanup Script
+
+The `cleanup.sh` script helps manage running processes during development and testing:
+
+```bash
+# Clean up everything (MCP tools + A2A agent)
+./cleanup.sh
+
+# Clean up only MCP tool servers
+./cleanup.sh tools
+
+# Clean up only A2A agent server  
+./cleanup.sh agent
+
+# Show help and port configuration
+./cleanup.sh help
+```
+
+### Port Management
+
+| Component | Port | Description |
+|-----------|------|-------------|
+| **MCP Tools** | | |
+| Calculator MCP (default) | 8002 | Mathematical calculations |
+| Weather MCP (dynamic) | 8001 | Weather data and forecasting |
+| **A2A Agent** | | |
+| ADK A2A Agent | 5002 | LLM-powered agent with tool management |
+
+### Cleanup Features
+
+- ✅ **Smart Process Detection** - Uses `lsof` to find processes on ports
+- ✅ **Graceful Termination** - Tries `SIGTERM` first, then `SIGKILL` if needed
+- ✅ **Port Verification** - Confirms ports are actually freed
+- ✅ **Selective Cleanup** - Clean tools, agent, or both
+- ✅ **Colorful Output** - Clear status indicators and progress
+
+### Troubleshooting
+
+If ports are still in use after cleanup:
+
+```bash
+# Check what's using a specific port
+lsof -i :5002
+
+# Manual kill (replace PID with actual process ID)
+kill -9 <PID>
+
+# Check all our ports at once
+lsof -i :8001 -i :8002 -i :5002
+```
 
 
 ## Training Benefits
@@ -429,7 +473,7 @@ This implementation includes a comprehensive test script:
 This ADK-powered A2A agent demonstrates:
 
 1. **Dynamic Tool Management**: Runtime addition/removal of MCP tools with session preservation
-2. **Multi-tool Integration**: Seamless coordination of Weather, File, and Calculator tools
+2. **Multi-tool Integration**: Seamless coordination of Weather and Calculator tools
 3. **LLM Integration**: How to add AI reasoning to A2A agents
 4. **Protocol Compliance**: Maintaining A2A standards with enhanced capabilities  
 5. **Tool Orchestration**: Intelligent use of MCP tools

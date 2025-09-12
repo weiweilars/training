@@ -65,10 +65,10 @@ EOF
 cd ../mcp_training
 
 # Start weather MCP tool (for agentA and agentC)
-python run_http.py weather --port 8004 &
+python run_http.py weather --port 8001 &
 
 # Start calculator MCP tool (for agentB and agentC)  
-python run_http.py calculator --port 8005 &
+python run_http.py calculator --port 8002 &
 ```
 
 ### 2. Install Dependencies
@@ -113,7 +113,7 @@ curl -X POST http://localhost:5010 \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/add",
-    "params": {"url": "http://localhost:8005/mcp"},
+    "params": {"url": "http://localhost:8002/mcp"},
     "id": "add-calculator-tools"
   }' | python -m json.tool
 ```
@@ -136,7 +136,7 @@ curl -X POST http://localhost:5012 \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/add",
-    "params": {"url": "http://localhost:8005/mcp"},
+    "params": {"url": "http://localhost:8002/mcp"},
     "id": "add-calculator"
   }' | python -m json.tool
 ```
@@ -294,8 +294,8 @@ lsof -i:5010,5011,5012,8003,8004,8005
 
 # Start clean - restart MCP servers
 cd ../mcp_training
-python run_http.py weather --port 8004 &
-python run_http.py calculator --port 8005 &
+python run_http.py weather --port 8001 &
+python run_http.py calculator --port 8002 &
 
 # Then start agents
 cd ../5_sk_a2a_custom_mcp_agent

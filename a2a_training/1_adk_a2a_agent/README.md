@@ -51,7 +51,7 @@ GOOGLE_API_KEY=your_google_api_key_here
 cd ../mcp_training
 
 # Start weather MCP tool in stateless mode
-STATELESS_HTTP=true python run_http.py weather --port 8002
+STATELESS_HTTP=true python run_http.py weather --port 8001
 ```
 
 ### 3. Install ADK A2A Agent Dependencies
@@ -69,14 +69,14 @@ pip install -r requirements.txt
 # Navigate to the agent folder
 cd adk_a2a_agent
 
-# Default settings (connects to weather MCP on port 8002, uses port 5002)
+# Default settings (connects to weather MCP on port 8001, uses port 5002)
 python adk_a2a_server.py
 
 # With custom configuration
-python adk_a2a_server.py --mcp-url http://localhost:8002/mcp --port 5005
+python adk_a2a_server.py --mcp-url http://localhost:8001/mcp --port 5005
 
 # With environment variables
-MCP_TOOL_URL=http://localhost:8002/mcp python adk_a2a_server.py
+MCP_TOOL_URL=http://localhost:8001/mcp python adk_a2a_server.py
 ```
 
 The ADK A2A agent server will start on `http://localhost:5002` by default.
@@ -235,7 +235,7 @@ The agent automatically discovers and integrates with available MCP tools:
 python adk_a2a_server.py --help
 ```
 
-- `--mcp-url`: MCP tool URL (default: `http://localhost:8002/mcp`)
+- `--mcp-url`: MCP tool URL (default: `http://localhost:8001/mcp`)
 - `--agent-id`: Agent ID (default: `adk-a2a-training-agent`)
 - `--agent-name`: Agent name (default: `ADK A2A Training Agent`)
 - `--port`: Server port (default: `5002`)

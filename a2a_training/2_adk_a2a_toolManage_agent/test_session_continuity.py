@@ -14,14 +14,14 @@ async def test_capability_changes():
     session_id = f"test-session-{datetime.now().strftime('%H%M%S')}"
     
     # Test queries to demonstrate session continuity with conversational flow
-    weather_query = "What is the current temperature in Tokyo in Celsius?"
-    calc_query = "Can you calculate double that temperature for me?"
+    calc_query = "Can you calculate the square root of 144?"
+    weather_query = "What's the weather like in Tokyo? Is it warmer than that number?"
     
     print("🧪 Testing Session Continuity with Conversational Flow")
     print("=" * 70)
     print(f"🔍 Conversation flow:")
-    print(f"   1. Get weather: '{weather_query}'")
-    print(f"   2. Calculate double: '{calc_query}'")
+    print(f"   1. Calculate: '{calc_query}'")
+    print(f"   2. Ask weather with reference: '{weather_query}'")
     print(f"   This tests if context is preserved across tool changes!")
     print()
     
@@ -90,69 +90,90 @@ async def test_capability_changes():
         agent_info = await check_agent_card()
         print(f"   🃏 Agent Card: {agent_info['mcp_skills']} MCP skills, {agent_info['tool_count']} tools")
         
-        weather_response_empty = await send_message(weather_query, "weather-empty")
-        print(f"   Weather query response: {weather_response_empty[:100]}...")
-        
         calc_response_empty = await send_message(calc_query, "calc-empty")
         print(f"   Calc query response: {calc_response_empty[:100]}...")
+        
+        # Wait between requests to avoid API overload
+        await asyncio.sleep(2)
+        
+        weather_response_empty = await send_message(weather_query, "weather-empty")
+        print(f"   Weather query response: {weather_response_empty[:100]}...")
 
-        # Step 3: Add weather tool and test conversation start
-        print(f"\n🌤️ Step 3: Adding WEATHER TOOL - Starting Conversation")
-        add_weather_payload = {"jsonrpc": "2.0", "method": "tools/add", "params": {"url": "http://localhost:8004/mcp"}, "id": "add-weather"}
-        async with session.post(base_url, json=add_weather_payload) as response:
-            result = await response.json()
-            print(f"   Add result: {result.get('result', {}).get('message', 'Unknown')}")
-        
-        # Check agent card after adding weather tool
-        agent_info = await check_agent_card()
-        print(f"   🃏 Agent Card: {agent_info['mcp_skills']} MCP skills ({', '.join(agent_info['skill_names'])}), {agent_info['tool_count']} tools")
-        
-        # Start conversation - ask for weather
-        weather_response_with_weather = await send_message(weather_query, "weather-step1")
-        print(f"   ✅ Step 1 - Weather: {weather_response_with_weather[:150]}...")
-        
-        # Try calculation without calc tool - should fail
-        calc_response_no_calc = await send_message(calc_query, "calc-no-tool")
-        print(f"   ❌ Step 2 - Calc (no tool): {calc_response_no_calc[:150]}...")
-
-        # Step 4: Add calculator tool - complete the conversation
-        print(f"\n🧮 Step 4: Adding CALCULATOR TOOL - Completing Conversation")
-        add_calc_payload = {"jsonrpc": "2.0", "method": "tools/add", "params": {"url": "http://localhost:8005/mcp"}, "id": "add-calc"}
+        # Step 3: Add calculator tool and test conversation start
+        print(f"\n🧮 Step 3: Adding CALCULATOR TOOL - Starting Conversation")
+        add_calc_payload = {"jsonrpc": "2.0", "method": "tools/add", "params": {"url": "http://localhost:8002/mcp"}, "id": "add-calc"}
         async with session.post(base_url, json=add_calc_payload) as response:
             result = await response.json()
             print(f"   Add result: {result.get('result', {}).get('message', 'Unknown')}")
         
+        # Wait for tool to be added
+        await asyncio.sleep(2)
+        
         # Check agent card after adding calculator tool
+        agent_info = await check_agent_card()
+        print(f"   🃏 Agent Card: {agent_info['mcp_skills']} MCP skills ({', '.join(agent_info['skill_names'])}), {agent_info['tool_count']} tools")
+        
+        # Start conversation - ask for calculation
+        calc_response_with_calc = await send_message(calc_query, "calc-step1")
+        print(f"   ✅ Step 1 - Calculation: {calc_response_with_calc[:150]}...")
+        
+        # Wait between requests
+        await asyncio.sleep(3)
+        
+        # Try weather without weather tool - should fail
+        weather_response_no_weather = await send_message(weather_query, "weather-no-tool")
+        print(f"   ❌ Step 2 - Weather (no tool): {weather_response_no_weather[:150]}...")
+
+        # Step 4: Add weather tool - complete the conversation
+        print(f"\n🌤️ Step 4: Adding WEATHER TOOL - Completing Conversation")
+        add_weather_payload = {"jsonrpc": "2.0", "method": "tools/add", "params": {"url": "http://localhost:8001/mcp"}, "id": "add-weather"}
+        async with session.post(base_url, json=add_weather_payload) as response:
+            result = await response.json()
+            print(f"   Add result: {result.get('result', {}).get('message', 'Unknown')}")
+        
+        # Wait for tool to be added
+        await asyncio.sleep(2)
+        
+        # Check agent card after adding weather tool
         agent_info = await check_agent_card()
         skill_names = ', '.join(agent_info['skill_names'][:3] + (['...'] if len(agent_info['skill_names']) > 3 else []))
         print(f"   🃏 Agent Card: {agent_info['mcp_skills']} MCP skills ({skill_names}), {agent_info['tool_count']} tools")
         
-        # Now the calculation should work with context from previous weather query
-        calc_response_with_context = await send_message(calc_query, "calc-with-context")
-        print(f"   ✅ Step 2 - Calc (with context): {calc_response_with_context[:150]}...")
+        # Now the weather query should work with context from previous calculation
+        weather_response_with_context = await send_message(weather_query, "weather-with-context")
+        print(f"   ✅ Step 2 - Weather (with context): {weather_response_with_context[:150]}...")
         
-        # Test weather still works
-        weather_response_check = await send_message("What about the weather in London?", "weather-check")
-        print(f"   ✅ Weather still works: {weather_response_check[:150]}...")
+        # Wait between requests
+        await asyncio.sleep(3)
+        
+        # Test calculation still works
+        calc_response_check = await send_message("What's 144 divided by 12?", "calc-check")
+        print(f"   ✅ Calculation still works: {calc_response_check[:150]}...")
 
-        # Step 5: Remove calculator tool - test session continuity
-        print(f"\n🗑️ Step 5: Removing CALCULATOR TOOL - Testing Session Continuity")
-        remove_calc_payload = {"jsonrpc": "2.0", "method": "tools/remove", "params": {"url": "http://localhost:8005/mcp"}, "id": "remove-calc"}
-        async with session.post(base_url, json=remove_calc_payload) as response:
+        # Step 5: Remove weather tool - test session continuity
+        print(f"\n🗑️ Step 5: Removing WEATHER TOOL - Testing Session Continuity")
+        remove_weather_payload = {"jsonrpc": "2.0", "method": "tools/remove", "params": {"url": "http://localhost:8001/mcp"}, "id": "remove-weather"}
+        async with session.post(base_url, json=remove_weather_payload) as response:
             result = await response.json()
             print(f"   Remove result: {result.get('result', {}).get('message', 'Unknown')}")
         
-        # Check agent card after removing calculator tool
+        # Wait for tool to be removed
+        await asyncio.sleep(2)
+        
+        # Check agent card after removing weather tool
         agent_info = await check_agent_card()
         print(f"   🃏 Agent Card: {agent_info['mcp_skills']} MCP skills ({', '.join(agent_info['skill_names'])}), {agent_info['tool_count']} tools")
         
-        # Ask about previous calculation - should remember context but lack calculation tool
-        context_test = await send_message("Can you tell me what calculation we just did?", "context-test")
+        # Ask about previous weather - should remember context but lack weather tool
+        context_test = await send_message("Can you tell me what weather we just discussed?", "context-test")
         print(f"   🧠 Context memory test: {context_test[:150]}...")
         
-        # New calculation should fail without tool
-        new_calc_test = await send_message("Calculate 25 * 4", "new-calc-fail")
-        print(f"   ❌ New calculation (no tool): {new_calc_test[:150]}...")
+        # Wait between requests
+        await asyncio.sleep(3)
+        
+        # New weather query should fail without tool
+        new_weather_test = await send_message("What's the weather in London?", "new-weather-fail")
+        print(f"   ❌ New weather query (no tool): {new_weather_test[:150]}...")
 
         # Step 6: Show final tool history
         print(f"\n📊 Step 6: Tool Change History & Audit Trail")
@@ -184,7 +205,7 @@ async def test_capability_changes():
                     action_text = action.upper()
                     
                     # Server type
-                    server_type = "weather" if "8004" in url else "calculator" if "8005" in url else "file" if "8003" in url else "unknown"
+                    server_type = "weather" if "8001" in url else "calculator" if "8002" in url else "file" if "8000" in url else "unknown"
                     
                     print(f"\n   {action_icon} #{i} {action_text} {server_type.upper()} SERVER")
                     print(f"   ├─ Time: {readable_time}")
@@ -216,10 +237,10 @@ async def test_capability_changes():
 
         # Summary
         print(f"\n🎯 SESSION CONTINUITY & AGENT CARD SUMMARY:")
-        print(f"   NO TOOLS:         Weather ❌ | Calculator ❌ | Agent Card: 0 MCP skills")
-        print(f"   WEATHER ONLY:     Weather ✅ | Calculator ❌ | Agent Card: 3 MCP skills (Context: ❌)")
-        print(f"   WEATHER + CALC:   Weather ✅ | Calculator ✅ | Agent Card: 6 MCP skills (Context: ✅)")
-        print(f"   WEATHER ONLY:     Weather ✅ | Calculator ❌ | Agent Card: 3 MCP skills (Context: ✅)")
+        print(f"   NO TOOLS:           Weather ❌ | Calculator ❌ | Agent Card: 0 MCP skills")
+        print(f"   CALCULATOR ONLY:    Weather ❌ | Calculator ✅ | Agent Card: 3 MCP skills (Context: ❌)")
+        print(f"   CALCULATOR + WEATHER: Weather ✅ | Calculator ✅ | Agent Card: 6 MCP skills (Context: ✅)")
+        print(f"   CALCULATOR ONLY:    Weather ❌ | Calculator ✅ | Agent Card: 3 MCP skills (Context: ✅)")
         print(f"\n🎉 Session continuity and dynamic tool management working perfectly!")
         print(f"🧠 The agent remembers the conversation context even when tools change!")
         print(f"🃏 The agent card dynamically reflects available MCP tools and skills!")

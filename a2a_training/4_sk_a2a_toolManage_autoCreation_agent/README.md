@@ -64,10 +64,10 @@ EOF
 cd ../mcp_training
 
 # Start weather MCP tool (for agentA and agentC)
-python run_http.py weather --port 8004 &
+python run_http.py weather --port 8001 &
 
 # Start file MCP tool (for agentB and agentC)  
-python run_http.py file --port 8003 &
+python run_http.py file --port 8000 &
 ```
 
 ### 2. Install Dependencies
@@ -112,7 +112,7 @@ curl -X POST http://localhost:5010 \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/add",
-    "params": {"url": "http://localhost:8003/mcp"},
+    "params": {"url": "http://localhost:8000/mcp"},
     "id": "add-file-tools"
   }' | jq
 ```
@@ -130,7 +130,7 @@ curl -X POST http://localhost:5010 \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/add",
-    "params": {"url": "http://localhost:8003/mcp"},
+    "params": {"url": "http://localhost:8000/mcp"},
     "id": "add-files"
   }'
 
@@ -140,7 +140,7 @@ curl -X POST http://localhost:5010 \
   -d '{
     "jsonrpc": "2.0", 
     "method": "tools/remove",
-    "params": {"url": "http://localhost:8003/mcp"},
+    "params": {"url": "http://localhost:8000/mcp"},
     "id": "remove-files"
   }'
 ```

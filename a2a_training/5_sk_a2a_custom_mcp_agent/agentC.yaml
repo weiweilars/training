@@ -19,8 +19,8 @@ agent:
   # Default MCP Tools - Multiple tools for versatility
   tools:
     default_urls:
-      - "http://localhost:8004/mcp"  # Weather MCP server
-      - "http://localhost:8005/mcp"  # Calculator MCP server
+      - "http://localhost:8001/mcp"  # Weather MCP server (port 8001)
+      - "http://localhost:8002/mcp"  # Calculator MCP server (port 8002)
     
   # Server Configuration
   server:

@@ -19,7 +19,7 @@ agent:
   # Default MCP Tools (can be overridden via --mcp-url)
   tools:
     default_urls:
-      - "http://localhost:8004/mcp"  # Weather MCP server
+      - "http://localhost:8001/mcp"  # Weather MCP server (port 8001)
     
   # Server Configuration
   server:

@@ -329,8 +329,8 @@ lsof -i:5020,5021,5022,5010,5011,5012,8003,8004,8005
 
 # Start clean - first restart underlying MCP servers if needed
 cd ../mcp_training
-python run_http.py weather --port 8004 &
-python run_http.py calculator --port 8005 &
+python run_http.py weather --port 8001 &
+python run_http.py calculator --port 8002 &
 
 # Then start underlying A2A agents
 cd ../5_sk_a2a_custom_mcp_agent

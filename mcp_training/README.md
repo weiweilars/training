@@ -34,10 +34,13 @@ curl -X POST http://localhost:8000/mcp \
 Use `run_http.py` to start any tool as an HTTP server:
 
 ```bash
-# Basic usage (stateless mode, port 8000)
-python run_http.py file
-python run_http.py weather --host 0.0.0.0 --port 8002
-python run_http.py calculator --port 8003
+# Start all tools with standardized ports (recommended)
+./start_all_tools.sh
+
+# Or start individually with standard ports:
+python run_http.py file --port 8000          # File tool
+python run_http.py weather --port 8001       # Weather tool  
+python run_http.py calculator --port 8002    # Calculator tool
 
 # Server modes
 python run_http.py file                        # Stateless (default)

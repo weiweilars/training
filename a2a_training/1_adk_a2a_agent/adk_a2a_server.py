@@ -43,7 +43,7 @@ load_dotenv()
 DEFAULT_AGENT_ID = "adk-a2a-training-agent"
 DEFAULT_AGENT_NAME = "ADK A2A Training Agent"
 DEFAULT_AGENT_PORT = 5002
-DEFAULT_MCP_TOOL_URL = "http://localhost:8002/mcp"  # Default weather MCP tool URL
+DEFAULT_MCP_TOOL_URL = "http://localhost:8001/mcp"  # Default weather MCP tool URL
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
