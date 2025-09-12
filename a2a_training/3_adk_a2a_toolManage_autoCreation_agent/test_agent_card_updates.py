@@ -109,6 +109,9 @@ async def test_agent_card_updates():
         initial_skills = [skill.get('name') for skill in initial_card.get('skills', [])]
         print_success(f"Initial skills: {initial_skills}")
         
+        # Wait between steps to avoid model overload
+        await asyncio.sleep(3)
+        
         # Step 2: Add calculator tool
         print_info("Step 2: Adding calculator tool...")
         add_result = await add_tool(session, port, "http://localhost:8002/mcp")
@@ -137,6 +140,9 @@ async def test_agent_card_updates():
                 print_error("Failed to get updated agent card")
         else:
             print_error("Failed to add tool")
+        
+        # Wait between steps to avoid model overload  
+        await asyncio.sleep(3)
         
         # Step 3: Remove calculator tool
         print_info("Step 3: Removing calculator tool...")

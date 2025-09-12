@@ -1,6 +1,23 @@
-starlette
-uvicorn
-aiohttp
-google-adk
-python-dotenv
-pyyaml
+# Core server dependencies
+starlette>=0.27.0
+uvicorn>=0.23.0
+aiohttp>=3.8.0
+
+# Google ADK and AI dependencies
+google-adk>=1.0.0
+
+# Configuration and environment
+python-dotenv>=1.0.0
+PyYAML>=6.0
+
+# Standard library modules are included by default:
+# - asyncio
+# - json  
+# - logging
+# - argparse
+# - os
+# - datetime
+# - typing
+# - uuid
+# - contextlib
+# - time

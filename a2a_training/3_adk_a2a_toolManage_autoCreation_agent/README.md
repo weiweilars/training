@@ -76,7 +76,7 @@ curl -X POST http://localhost:5010 \
       "sessionId": "test-weather"
     },
     "id": "1"
-  }' | jq
+  }' | python -m json.tool
 
 # Test Calculator Agent (port 5011)  
 curl -X POST http://localhost:5011 \
@@ -89,7 +89,7 @@ curl -X POST http://localhost:5011 \
       "sessionId": "test-calc"
     },
     "id": "1"
-  }' | jq
+  }' | python -m json.tool
 ```
 
 ## ⚙️ YAML Configuration Structure
@@ -182,7 +182,7 @@ python adk_a2a_server.py --agent-name "My Custom Agent" --port 5015 --mcp-url ht
 python adk_a2a_server.py --config agentA.yaml --port 5010 &
 
 # Check agent card
-curl http://localhost:5010/.well-known/agent-card.json | jq '{name, description, greeting}'
+curl http://localhost:5010/.well-known/agent-card.json | python -c "import sys, json; data=json.load(sys.stdin); print(json.dumps({'name': data['name'], 'description': data['description'], 'greeting': data['greeting']}, indent=2))"
 
 # Expected output:
 {

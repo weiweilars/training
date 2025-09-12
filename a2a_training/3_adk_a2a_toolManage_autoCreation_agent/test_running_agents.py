@@ -62,7 +62,7 @@ class AgentTester:
             },
             "Calculator Specialist": {
                 "port": 5011,
-                "expected_id": "calculator-specialist-agent",
+                "expected_id": "calculator-agent",
                 "test_query": "Calculate 25 multiplied by 4, then add 10 to the result"
             },
             "Multi-Tool Assistant": {
@@ -89,7 +89,7 @@ class AgentTester:
             async with self.session.get(url, timeout=5) as response:
                 if response.status == 200:
                     card = await response.json()
-                    agent_id = card.get('id', 'unknown')
+                    agent_id = card.get('metadata', {}).get('agent_id', 'unknown')
                     expected_id = self.agents[agent_name]['expected_id']
                     
                     if agent_id == expected_id:
@@ -122,10 +122,12 @@ class AgentTester:
             async with self.session.post(url, json=payload, timeout=30) as response:
                 if response.status == 200:
                     result = await response.json()
-                    if 'result' in result and 'content' in result['result']:
+                    if ('result' in result and 'result' in result['result'] and 
+                        'message' in result['result']['result'] and 
+                        'content' in result['result']['result']['message']):
                         return {
                             "success": True,
-                            "content": result['result']['content'],
+                            "content": result['result']['result']['message']['content'],
                             "response": result
                         }
                     else:
@@ -203,6 +205,8 @@ class AgentTester:
         connectivity_results = {}
         for agent_name, config in self.agents.items():
             connectivity_results[agent_name] = await self.check_agent_card(agent_name, config["port"])
+            # Small delay between agent checks to avoid overload
+            await asyncio.sleep(1)
         
         # Test 2: Test basic functionality
         print_header("Agent Functionality Test")
@@ -213,12 +217,16 @@ class AgentTester:
                 functionality_results[agent_name] = await self.test_agent_functionality(
                     agent_name, config["port"], config["test_query"]
                 )
+                # Delay between agent tests to avoid model overload
+                await asyncio.sleep(5)
             else:
                 print_warning(f"Skipping functionality test for {agent_name} (not connected)")
                 functionality_results[agent_name] = False
         
         # Test 3: Multi-tool capability test
         print_header("Multi-Tool Capability Test")
+        # Delay before multi-tool test to avoid overload
+        await asyncio.sleep(3)
         multi_tool_success = False
         if connectivity_results.get("Multi-Tool Assistant", False):
             multi_tool_success = await self.test_multi_tool_capability()
