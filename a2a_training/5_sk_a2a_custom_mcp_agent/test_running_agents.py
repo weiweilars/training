@@ -89,7 +89,8 @@ class AgentTester:
             async with self.session.get(url, timeout=5) as response:
                 if response.status == 200:
                     card = await response.json()
-                    agent_id = card.get('id', 'unknown')
+                    # Try multiple locations for agent ID
+                    agent_id = card.get('id') or card.get('metadata', {}).get('agent_id', 'unknown')
                     expected_id = self.agents[agent_name]['expected_id']
                     
                     if agent_id == expected_id:
@@ -122,10 +123,20 @@ class AgentTester:
             async with self.session.post(url, json=payload, timeout=30) as response:
                 if response.status == 200:
                     result = await response.json()
-                    if 'result' in result and 'content' in result['result']:
+                    # Handle different response formats
+                    if 'result' in result:
+                        if 'result' in result['result'] and 'message' in result['result']['result']:
+                            # SK agent format
+                            content = result['result']['result']['message']['content']
+                        elif 'content' in result['result']:
+                            # Alternative format
+                            content = result['result']['content']
+                        else:
+                            content = str(result['result'])
+                        
                         return {
                             "success": True,
-                            "content": result['result']['content'],
+                            "content": content,
                             "response": result
                         }
                     else:
