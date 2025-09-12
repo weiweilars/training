@@ -1,0 +1,32 @@
+# Dynamic Coordinator Agent Configuration - Demonstrates Dynamic Card Updates
+agent:
+  id: "dynamic-coordinator-agent"
+  name: "Dynamic Coordinator Agent"
+  version: "1.0.0"
+  description: "A dynamic orchestrator that adapts its description based on connected agents"  # Will be overridden dynamically
+  
+  # Agent Card Properties - These will be dynamically updated
+  card:
+    greeting: "Hello! I'm a dynamic coordinator."  # Will be updated based on sub-agents
+    instructions: "I coordinate with other agents to help you."  # Will be dynamically generated
+    
+  # Agent Personality & Behavior
+  personality:
+    style: "adaptive and intelligent"
+    tone: "professional and coordinated"
+    expertise: "dynamic agent orchestration and capability management"
+    
+  # Default A2A Agents - Start with one specialized agent
+  agents:
+    default_urls:
+      - "http://localhost:5010"  # Weather Specialist Agent (AgentA)
+    
+  # Server Configuration
+  server:
+    default_port: 5025
+    host: "0.0.0.0"
+    
+  # LLM Configuration  
+  llm:
+    model: "gpt-3.5-turbo"
+    system_prompt: "You are a dynamic coordinator agent that adapts to available sub-agents. You have access to specialized capabilities through other A2A agents. Always analyze the user's request and route it to the most appropriate sub-agent. When using capabilities, pass the user's complete request with full context."

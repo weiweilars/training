@@ -32,98 +32,221 @@ This implementation transforms the MCP tool-calling paradigm into **A2A agent-to
 The main agent acts as a coordinator, routing requests to specialized agents:
 
 ```
-User Request → Coordinator Agent → Weather Agent
-                                → Task Agent  
-                                → Research Agent
+User Request → Coordinator Agent → Weather Agent (AgentA)
+                                → Calculator Agent (AgentB)
                                 ↓
              Synthesized Response ← Coordinator Agent
 ```
 
 ### Multi-Domain Expertise
 Each connected agent brings specialized capabilities:
-- **Weather Agents**: Meteorological analysis and forecasting
-- **Task Agents**: Project management and scheduling
-- **Research Agents**: Information gathering and analysis
-- **Data Agents**: Statistical analysis and visualization
+- **Weather Agent (AgentA)**: Meteorological analysis and forecasting
+- **Calculator Agent (AgentB)**: Mathematical computations and analysis
+- **Coordinator Agent**: Routes requests and synthesizes responses from specialized agents
 
 ## 📁 Available Agent Configurations
 
 | Config File | Agent Type | Description | Default Port | Connected Agents |
 |-------------|------------|-------------|--------------|------------------|
-| `agentA.yaml` | **Weather Coordinator** | Coordinates weather-related queries | 5020 | Weather & Climate Agents |
-| `agentB.yaml` | **Task Coordinator** | Manages productivity and projects | 5021 | Project & Schedule Agents |
-| `agentC.yaml` | **Multi-Domain Coordinator** | Handles diverse, cross-domain queries | 5022 | Weather, Task, Research & Data Agents |
+| `dynamic_coordinator.yaml` | **Dynamic Coordinator** | Self-documenting agent that adapts description based on connected sub-agents | 5025 | Dynamically discovered agents |
+
+This configuration demonstrates the intelligent dynamic agent card generation using an external summarization agent.
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
-
-#### Set up LLM Provider
+### Prerequisites
 ```bash
-# Create .env file with OpenAI credentials
+# 1. Set up LLM Provider (create .env file with OpenAI credentials)
 echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
-```
 
-#### Start Specialized A2A Agents
-You need to have other A2A agents running that this coordinator can connect to:
-
-```bash
-# Example: Start specialized weather agent (port 5010)
-cd ../5_sk_a2a_custom_mcp_agent
-python sk_a2a_server.py --config agentA.yaml &
-
-# Example: Start specialized calculator agent (port 5011) 
-python sk_a2a_server.py --config agentB.yaml &
-
-# Example: Start specialized multi-tool agent (port 5012)
-python sk_a2a_server.py --config agentC.yaml &
-```
-
-### 2. Install Dependencies
-
-```bash
-cd 6_sk_a2a_agent_to_agent
+# 2. Install Dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Run Coordinator Agents
+### Dependency Architecture
+**Important**: The system has a layered dependency structure:
+1. **MCP Tools** (ports 8001, 8002) - Foundation layer
+   - Weather tool on 8001
+   - Calculator tool on 8002
+2. **Specialized Agents** (ports 5010, 5011) - Each uses specific MCP tools
+   - AgentA on 5010 (Weather Specialist) → Weather MCP
+   - AgentB on 5011 (Calculator Agent) → Calculator MCP
+3. **Summarization Agent** (port 5030) - Meta-services
+4. **Coordinator Agent** (port 5025) - Orchestrates specialized agents
+
+### Quick Start
+
+Follow the dependency order for proper system startup:
 
 ```bash
-# Weather Coordinator Agent
-python sk_a2a_server.py --config agentA.yaml
+# 1. Start MCP tool servers (foundation layer)
+cd ../../mcp_training
+python run_http.py weather --port 8001 &      # Weather tools
+python run_http.py calculator --port 8002 &   # Calculator tools
 
-# Task Management Coordinator Agent
-python sk_a2a_server.py --config agentB.yaml
+# 2. Start specialized agents (capability layer)
+cd ../a2a_training/5_sk_a2a_custom_mcp_agent
+python sk_a2a_server.py --config agentA.yaml &             # Port 5010 (Weather)
+python sk_a2a_server.py --config agentB.yaml &             # Port 5011 (Calculator)
+python sk_a2a_server.py --config summarization_agent.yaml & # Port 5030 (Summarizer)
 
-# Multi-Domain Coordinator Agent
-python sk_a2a_server.py --config agentC.yaml
+# 3. Start coordinator (orchestration layer)
+cd ../6_sk_a2a_agent_to_agent
+python sk_a2a_server.py --config dynamic_coordinator.yaml & # Port 5025
+
+# 4. Test the system
+python test_dynamic_agent_card.py
 ```
 
-### 4. Test Agent-to-Agent Communication
-
+**Cleanup:**
 ```bash
-# Test Weather Coordinator (routes to weather agents)
-curl -X POST http://localhost:5020 \
+./cleanup.sh all          # Clean everything
+./cleanup.sh agents       # Clean agents only
+./cleanup.sh tools        # Clean MCP tools only
+```
+```
+
+## 💬 Multi-Agent Message Examples
+
+The coordinator demonstrates true multi-agent orchestration by routing requests to specialized agents and synthesizing their responses.
+
+### Example 1: Weather Query (Single Agent)
+```bash
+# Simple weather query - routed to AgentA (Weather Specialist)
+curl -X POST http://localhost:5025 \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
     "method": "message/send",
     "params": {
-      "message": {"content": "What is the weather forecast for Tokyo and how does it compare to seasonal averages?"},
-      "sessionId": "weather-coordination-test"
+      "message": {"content": "What is the current weather in Tokyo?"},
+      "sessionId": "weather-test"
     },
-    "id": "1"
+    "id": "weather-query"
   }' | python -m json.tool
+```
 
-# Test dynamic agent addition
-curl -X POST http://localhost:5020 \
+### Example 2: After Adding Calculator Agent
+```bash
+# First, add the calculator agent
+curl -X POST http://localhost:5025 \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
     "method": "agents/add",
-    "params": {"url": "http://localhost:5015"},
-    "id": "add-data-agent"
+    "params": {"url": "http://localhost:5011"},
+    "id": "add-calc"
   }' | python -m json.tool
+
+# Now test multi-agent coordination
+curl -X POST http://localhost:5025 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {"content": "Get the temperature in Tokyo and London, then calculate the average temperature between them"},
+      "sessionId": "multi-agent-test"
+    },
+    "id": "weather-math-query"
+  }' | python -m json.tool
+```
+
+### Example 3: Complex Multi-Step Coordination
+```bash
+# Complex query requiring both weather data and mathematical computation
+curl -X POST http://localhost:5025 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {"content": "If the temperature in Paris is currently above 20°C, calculate how much warmer it is compared to 15°C, and convert the difference to Fahrenheit"},
+      "sessionId": "complex-coordination"
+    },
+    "id": "complex-query"
+  }' | python -m json.tool
+```
+
+### Example 4: Testing Agent Capabilities Evolution
+```bash
+# Check what the coordinator can do initially (weather only)
+curl -X POST http://localhost:5025 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", 
+    "method": "message/send",
+    "params": {
+      "message": {"content": "What capabilities do you have? List what kinds of questions you can help me with."},
+      "sessionId": "capability-test"
+    },
+    "id": "capabilities-before"
+  }' | python -m json.tool
+
+# Add calculator agent
+curl -X POST http://localhost:5025 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "agents/add", 
+    "params": {"url": "http://localhost:5011"},
+    "id": "add-calculator"
+  }' | python -m json.tool
+
+# Check capabilities again (weather + math)
+curl -X POST http://localhost:5025 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send", 
+    "params": {
+      "message": {"content": "What capabilities do you have now? How have your abilities expanded?"},
+      "sessionId": "capability-test"
+    },
+    "id": "capabilities-after"
+  }' | python -m json.tool
+```
+
+### Example 5: Demonstration of Agent Coordination
+```bash
+# Query that requires coordination between multiple agents
+curl -X POST http://localhost:5025 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {"content": "Compare the weather in 3 different cities and tell me which city has a temperature closest to 22 degrees Celsius. Show your calculation steps."},
+      "sessionId": "coordination-demo"
+    },
+    "id": "coordination-query"
+  }' | python -m json.tool
+```
+
+### Expected Coordinator Behavior
+
+The coordinator should demonstrate:
+
+1. **Intelligent Routing**: 
+   - Weather queries → AgentA (Weather Specialist)
+   - Math queries → AgentB (Calculator Agent) 
+   - Complex queries → Both agents with synthesis
+
+2. **Response Synthesis**:
+   - Combines weather data from AgentA with calculations from AgentB
+   - Provides coherent, comprehensive answers
+   - Shows understanding of multi-step processes
+
+3. **Dynamic Capability Awareness**:
+   - Adapts responses based on currently connected agents
+   - Explains capability changes when agents are added/removed
+   - Maintains conversation context across topology changes
+
+4. **Agent Card Updates**:
+   - Description automatically updates when agents are added/removed
+   - Skills reflect current connected agent capabilities
+   - Greeting adapts to available functionalities
+
 ```
 
 ## 🔧 Dynamic Agent Management
@@ -131,28 +254,39 @@ curl -X POST http://localhost:5020 \
 ### Adding/Removing Agents at Runtime
 
 ```bash
-# Add a new A2A agent dynamically
-curl -X POST http://localhost:5020 \
+# Add agentB (Calculator Agent) dynamically (and watch description update!)
+# Note: AgentA (Weather) is already connected by default
+curl -X POST http://localhost:5025 \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
     "method": "agents/add",
-    "params": {"url": "http://localhost:5016"},
-    "id": "add-analysis-agent"
+    "params": {"url": "http://localhost:5011"},
+    "id": "add-calculator-agent"
   }'
 
-# Remove an A2A agent dynamically  
-curl -X POST http://localhost:5020 \
+# Remove the default weather agent dynamically
+curl -X POST http://localhost:5025 \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
     "method": "agents/remove", 
-    "params": {"url": "http://localhost:5016"},
-    "id": "remove-analysis-agent"
+    "params": {"url": "http://localhost:5010"},
+    "id": "remove-weather-agent"
+  }'
+
+# Re-add the weather agent back
+curl -X POST http://localhost:5025 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "agents/add",
+    "params": {"url": "http://localhost:5010"},
+    "id": "re-add-weather-agent"
   }'
 
 # List connected agents
-curl -X POST http://localhost:5020 \
+curl -X POST http://localhost:5025 \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -226,6 +360,12 @@ Enhanced A2A protocol with agent management:
   - `agents/list` - List connected agents
   - `agents/history` - View agent topology changes
 
+### Get Agent Model Card
+```bash
+# Get the current agent model card (shows connected agents and capabilities)
+curl -X GET http://localhost:5025/.well-known/agent-card.json | python -m json.tool
+```
+
 ## 🔍 Agent Discovery Process
 
 ### 1. Agent Card Fetching
@@ -253,20 +393,20 @@ if success:
 
 ## 🎯 Use Cases
 
-### 1. Multi-Domain Research
-"Research climate change impacts on agriculture in Japan"
-- Routes to: Weather Agent + Research Agent + Data Agent
-- Synthesizes: Weather patterns + Research papers + Statistical analysis
+### 1. Weather-Math Integration
+"What's the average temperature between Tokyo and London, and how much warmer is it in Fahrenheit?"
+- Routes to: Weather Agent (get temperatures) + Calculator Agent (compute average, convert units)
+- Synthesizes: Weather data + Mathematical computation + Unit conversion
 
-### 2. Project Management
-"Plan a software release considering weather impacts on data center operations"
-- Routes to: Task Agent + Weather Agent + Infrastructure Agent  
-- Synthesizes: Project timeline + Weather forecast + Infrastructure planning
+### 2. Complex Calculations with Context
+"If it's 25°C in Paris, convert to Fahrenheit and calculate how much I'd save on heating if I moved there from a place that's 10°C"
+- Routes to: Weather Agent (temperature context) + Calculator Agent (conversion and difference)
+- Synthesizes: Weather context + Temperature conversion + Cost analysis
 
-### 3. Complex Analysis
-"Analyze sales performance correlation with weather patterns"
-- Routes to: Data Agent + Weather Agent + Analysis Agent
-- Synthesizes: Sales data + Weather data + Statistical correlation
+### 3. Multi-Step Weather Analysis
+"Compare the weather in 3 cities and find which one has the temperature closest to 20°C"
+- Routes to: Weather Agent (get all temperatures) + Calculator Agent (find closest to target)
+- Synthesizes: Multiple weather queries + Mathematical comparison + Recommendation
 
 ## 🏗️ Architecture Benefits
 
@@ -279,22 +419,14 @@ if success:
 
 ## 🔧 Configuration Examples
 
-### Weather Coordinator Agent
+### Dynamic Coordinator Agent
 ```yaml
 agents:
   default_urls:
-    - "http://localhost:5010"  # Weather Specialist
-    - "http://localhost:5011"  # Climate Analysis
-```
+    - "http://localhost:5010"  # Weather Specialist Agent (AgentA) - connected by default
 
-### Multi-Domain Coordinator
-```yaml
-agents:
-  default_urls:
-    - "http://localhost:5010"  # Weather
-    - "http://localhost:5012"  # Tasks  
-    - "http://localhost:5014"  # Research
-    - "http://localhost:5015"  # Data Analysis
+# Agent description and instructions will be automatically generated
+# based on the capabilities discovered from connected agents
 ```
 
 ## 🚀 Summary
@@ -309,41 +441,82 @@ This A2A agent-to-agent implementation provides:
 
 Create unlimited specialized agent networks with configuration files and harness the power of collaborative AI agents! 🤖🌐
 
-## 🔍 Troubleshooting
+## 🔧 Understanding the System Architecture
 
-### Port Cleanup
+The multi-agent system has a clear layered dependency structure:
 
-Before starting fresh tests, clean up all background processes and ports:
+**Layer 1: MCP Tools (Foundation)**
+- Provide actual capabilities (weather data, calculations)
+- Must start first - agents depend on them
+
+**Layer 2: Specialized Agents (Capabilities)**  
+- Each agent wraps MCP tools with AI intelligence
+- AgentA (Weather) + AgentB (Calculator) + Summarizer
+
+**Layer 3: Coordinator (Orchestration)**
+- Manages other agents and synthesizes responses
+- Starts with AgentA connected, can add/remove others dynamically
+
+This architecture demonstrates true **emergent capabilities** - the coordinator can do weather+math analysis by orchestrating specialized agents, even though it doesn't directly access MCP tools.
+
+### Enhanced Cleanup Options
+
+The cleanup script now supports granular cleanup of different system components:
 
 ```bash
-# Kill all Python processes (A2A agents and underlying MCP servers)
-pkill -f "python.*sk_a2a_server.py"
-pkill -f "python.*run_http.py"
+# Clean everything (default)
+./cleanup.sh
+./cleanup.sh all
 
-# Alternative: Kill specific processes by port
-# Find processes using coordination ports and underlying service ports
-lsof -ti:5020,5021,5022,5010,5011,5012,8003,8004,8005 | xargs -r kill -9
+# Clean only MCP tool servers (keep agents running)
+./cleanup.sh tools
 
-# Verify all ports are free
-lsof -i:5020,5021,5022,5010,5011,5012,8003,8004,8005
+# Clean only specialized agents (AgentA/AgentB, keep coordinator running)
+./cleanup.sh single  
 
-# Start clean - first restart underlying MCP servers if needed
-cd ../mcp_training
-python run_http.py weather --port 8001 &
-python run_http.py calculator --port 8002 &
+# Clean only multi-agent system (coordinator + summarizer, keep single agents)
+./cleanup.sh multi
 
-# Then start underlying A2A agents
-cd ../5_sk_a2a_custom_mcp_agent
-python sk_a2a_server.py --config agentA.yaml &  # Port 5010
-python sk_a2a_server.py --config agentB.yaml &  # Port 5011
-python sk_a2a_server.py --config agentC.yaml &  # Port 5012
+# Clean all agents but keep MCP tools running
+./cleanup.sh agents
 
-# Finally start coordinator agents
-cd ../6_sk_a2a_agent_to_agent
-python sk_a2a_server.py --config agentA.yaml &  # Port 5020
-python sk_a2a_server.py --config agentB.yaml &  # Port 5021
-python sk_a2a_server.py --config agentC.yaml &  # Port 5022
+# Show help with port configurations
+./cleanup.sh help
 ```
+
+**Use Cases:**
+- `./cleanup.sh tools` - Restart just the MCP layer while keeping agents
+- `./cleanup.sh single` - Test coordinator with fresh specialized agents
+- `./cleanup.sh multi` - Restart coordination layer while keeping capabilities
+- `./cleanup.sh agents` - Reset all AI agents but keep foundation tools
+
+**Manual cleanup (if needed):**
+```bash
+# All services
+lsof -ti:5025,5030,5010,5011,8001,8002 | xargs -r kill -9
+
+# Just agents  
+lsof -ti:5025,5030,5010,5011 | xargs -r kill -9
+
+# Just tools
+lsof -ti:8001,8002 | xargs -r kill -9
+```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Port Already in Use**: Run cleanup commands before starting services
+2. **Agents Won't Start**: Ensure MCP tools are running first (ports 8001, 8002)
+3. **"MCP tool connection failed"**: Start MCP tools before agents:
+   ```bash
+   cd ../../mcp_training
+   python run_http.py weather --port 8001 &
+   python run_http.py calculator --port 8002 &
+   ```
+4. **Summarization Agent Unavailable**: Ensure port 5030 is free and the agent is running
+5. **Dynamic Updates Not Working**: Check that the summarization agent is responsive
+6. **Agent Addition Fails**: Verify target agent is running and accessible
 
 ## 🔗 Next Steps
 

@@ -143,6 +143,7 @@ class A2ATeamAgent:
         self._agent_plugins = {}
         self._agent_urls = []
         self._agent_history = []
+        self._sub_agents_info = {}  # Store full info about sub-agents for card generation
         
         # Session management - maintain chat history per session
         self._sessions = defaultdict(lambda: {
@@ -233,28 +234,35 @@ class A2ATeamAgent:
 
     def _get_parameter_dicts_from_capability(self, capability_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Creates parameter dictionaries from A2A agent capability data"""
+        # Always include a query parameter for passing user requests
+        params = [{
+            "name": "query",
+            "is_required": False,
+            "type": "string",
+            "default_value": None,
+            "schema_data": {"type": "string"},
+            "description": "The user's query or request to pass to the agent"
+        }]
+        
         parameters = capability_data.get("parameters", {})
         
-        if not parameters:
-            return []
-            
-        params = []
-        for prop_name, prop_details in parameters.items():
-            # Handle string-encoded JSON
-            if isinstance(prop_details, str):
-                try:
-                    prop_details = json.loads(prop_details)
-                except json.JSONDecodeError:
-                    prop_details = {"type": "string"}
-            
-            params.append({
-                "name": prop_name,
-                "is_required": prop_details.get("required", False),
-                "type": prop_details.get("type", "string"),
-                "default_value": prop_details.get("default", None),
-                "schema_data": prop_details,
-                "description": prop_details.get("description", f"Parameter {prop_name}")
-            })
+        if parameters:
+            for prop_name, prop_details in parameters.items():
+                # Handle string-encoded JSON
+                if isinstance(prop_details, str):
+                    try:
+                        prop_details = json.loads(prop_details)
+                    except json.JSONDecodeError:
+                        prop_details = {"type": "string"}
+                
+                params.append({
+                    "name": prop_name,
+                    "is_required": prop_details.get("required", False),
+                    "type": prop_details.get("type", "string"),
+                    "default_value": prop_details.get("default", None),
+                    "schema_data": prop_details,
+                    "description": prop_details.get("description", f"Parameter {prop_name}")
+                })
         return params
 
     async def _add_a2a_plugin_to_kernel(self, url: str):
@@ -290,10 +298,12 @@ class A2ATeamAgent:
                         name=name,
                         description=desc
                     )
-                    async def kernel_func(**kwargs):
+                    async def kernel_func(query: str = None, **kwargs):
                         try:
-                            # Format message for the A2A agent
-                            if kwargs:
+                            # Use the query parameter if provided, otherwise construct from kwargs
+                            if query:
+                                message = query
+                            elif kwargs:
                                 message = f"Please help with {name}. Parameters: {json.dumps(kwargs, indent=2)}"
                             else:
                                 message = f"Please help with {name}"
@@ -323,7 +333,7 @@ class A2ATeamAgent:
                 kernel_func = create_kernel_func(capability_name, capability_description, custom_agentset, capability_data)
                 plugin_functions[capability_name] = kernel_func
                 
-                logger.info(f"Registered {capability_name} with {len(kernel_func.__kernel_function_parameters__)} parameters")
+                logger.info(f"Registered {capability_name} with query parameter for agent invocation")
             
             # Create a plugin from all the functions
             plugin = KernelPlugin(
@@ -465,6 +475,221 @@ class A2ATeamAgent:
             agents[url] = {"description": f"A2A agent from {url}"}
         return agents
 
+    async def discover_and_update_agent_info(self) -> Dict[str, Any]:
+        """Discover A2A agents and collect detailed info for dynamic card generation"""
+        total_capabilities_discovered = 0
+        discovery_results = []
+        
+        # Clear the existing sub-agents info to ensure fresh discovery
+        self._sub_agents_info = {}
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Iterate through all current A2A agent URLs
+                for a2a_url in self._agent_urls:
+                    try:
+                        logger.info(f"Discovering capabilities from A2A agent: {a2a_url}")
+                        
+                        # Fetch agent card
+                        async with session.get(f"{a2a_url}/.well-known/agent-card.json") as response:
+                            if response.status == 200:
+                                agent_card = await response.json()
+                                
+                                # Store sub-agent information for dynamic card generation
+                                self._sub_agents_info[a2a_url] = {
+                                    "name": agent_card.get("name", "Unknown Agent"),
+                                    "description": agent_card.get("description", "No description"),
+                                    "skills": agent_card.get("skills", [])
+                                }
+                                
+                                capabilities = agent_card.get("skills", [])
+                                total_capabilities_discovered += len(capabilities)
+                                
+                                discovery_results.append({
+                                    "url": a2a_url,
+                                    "success": True,
+                                    "capabilities_count": len(capabilities),
+                                    "capabilities": [c["name"] for c in capabilities]
+                                })
+                                logger.info(f"Discovered {len(capabilities)} capabilities from {a2a_url}: {[c['name'] for c in capabilities]}")
+                            else:
+                                discovery_results.append({
+                                    "url": a2a_url,
+                                    "success": False,
+                                    "error": f"Failed to fetch agent card (status {response.status})"
+                                })
+                                logger.warning(f"Failed to get agent card from {a2a_url}")
+                                
+                    except Exception as e:
+                        error_msg = str(e)
+                        discovery_results.append({
+                            "url": a2a_url,
+                            "success": False,
+                            "error": error_msg
+                        })
+                        logger.error(f"Exception discovering capabilities from {a2a_url}: {error_msg}")
+                
+                # Summary
+                successful_agents = len([r for r in discovery_results if r["success"]])
+                total_agents = len(self._agent_urls)
+                
+                logger.info(f"Agent discovery complete: {total_capabilities_discovered} capabilities from {successful_agents}/{total_agents} agents")
+                
+                return {
+                    "success": total_capabilities_discovered > 0,
+                    "total_capabilities": total_capabilities_discovered,
+                    "agents_contacted": total_agents,
+                    "successful_agents": successful_agents,
+                    "discovery_results": discovery_results,
+                    "sub_agents_info": self._sub_agents_info
+                }
+                        
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Failed to discover A2A agents: {error_msg}")
+            return {"success": False, "error": error_msg}
+    
+    async def _call_summarization_agent(self, content_type: str, context_data: Dict[str, Any]) -> str:
+        """Call external summarization agent for intelligent text generation"""
+        try:
+            summarization_url = "http://localhost:5030"  # Default summarization agent port
+            
+            # Prepare the prompt based on content type
+            if content_type == "description":
+                prompt = (
+                    "Generate a concise, professional description (1-2 sentences) for an AI agent coordinator "
+                    "that manages the specialized agents listed below. Focus on the key capabilities "
+                    "and domains covered. Make it informative but not verbose.\n\n"
+                    f"Context: {json.dumps(context_data, indent=2)}"
+                )
+            elif content_type == "instructions":
+                prompt = (
+                    "Generate comprehensive but concise instructions for users interacting with this AI coordinator. "
+                    "Explain what the coordinator can do, list the available specialized agents with their key capabilities, "
+                    "and provide guidance on how to make requests. Keep it professional and user-friendly. "
+                    "Structure it clearly with sections if needed.\n\n"
+                    f"Context: {json.dumps(context_data, indent=2)}"
+                )
+            elif content_type == "greeting":
+                prompt = (
+                    "Generate a friendly, professional greeting (1-2 sentences) for this AI coordinator. "
+                    "Mention the coordinator's role and the number of specialized agents available. "
+                    "Keep it welcoming but informative.\n\n"
+                    f"Context: {json.dumps(context_data, indent=2)}"
+                )
+            else:
+                return f"Unknown content type: {content_type}"
+            
+            # Call the summarization agent
+            async with aiohttp.ClientSession() as session:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "id": f"summarize_{content_type}",
+                    "method": "message/send",
+                    "params": {
+                        "message": {"content": prompt},
+                        "sessionId": f"dynamic_card_generation_{content_type}"
+                    }
+                }
+                
+                async with session.post(summarization_url, json=payload) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if "result" in result:
+                            # Handle new task-based response format
+                            if "result" in result["result"] and "message" in result["result"]["result"]:
+                                return result["result"]["result"]["message"]["content"].strip()
+                            # Handle legacy response format
+                            elif "response" in result["result"]:
+                                return result["result"]["response"].strip()
+                            else:
+                                logger.warning(f"Unexpected summarization agent response format: {result}")
+                                return self._fallback_text_generation(content_type, context_data)
+                        else:
+                            logger.warning(f"No result field in summarization agent response: {result}")
+                            return self._fallback_text_generation(content_type, context_data)
+                    else:
+                        logger.warning(f"Summarization agent returned status {response.status}")
+                        return self._fallback_text_generation(content_type, context_data)
+                        
+        except Exception as e:
+            logger.warning(f"Failed to call summarization agent: {e}, using fallback")
+            return self._fallback_text_generation(content_type, context_data)
+    
+    def _fallback_text_generation(self, content_type: str, context_data: Dict[str, Any]) -> str:
+        """Fallback text generation when summarization agent is not available"""
+        if content_type == "description":
+            # Generate description fallback
+            agent_count = len(context_data.get("agents", {}))
+            agent_names = [info.get("name", "Unknown") for info in context_data.get("agents", {}).values()]
+            if agent_names:
+                return f"SK-powered orchestrator coordinating {agent_count} specialized agents: {', '.join(agent_names[:3])}"
+            else:
+                return f"SK-powered orchestrator managing {agent_count} AI agents"
+        elif content_type == "instructions":
+            # Generate instructions fallback using rigid approach
+            instruction_parts = ["I coordinate multiple specialized AI agents to help you with complex tasks."]
+            
+            agents = context_data.get("agents", {})
+            if agents:
+                instruction_parts.append(f"\n\nAvailable agents ({len(agents)}):")
+                for i, (agent_url, agent_info) in enumerate(agents.items(), 1):
+                    agent_name = agent_info.get("name", "Unknown Agent")
+                    agent_desc = agent_info.get("description", "No description")
+                    instruction_parts.append(f"\n{i}. **{agent_name}**: {agent_desc}")
+                    
+                    # Add top skills for each agent
+                    skills = agent_info.get("skills", [])
+                    if skills:
+                        skill_list = [skill.get("name", "unknown") for skill in skills[:5]]
+                        instruction_parts.append(f"   - Capabilities: {', '.join(skill_list)}")
+            
+            instruction_parts.append("\n\nI can intelligently route your requests to the most appropriate agent(s) and coordinate their responses.")
+            return "".join(instruction_parts)
+        elif content_type == "greeting":
+            # Generate greeting fallback
+            agent_count = len(context_data.get("agents", {}))
+            coordinator_name = context_data.get("coordinator_name", "the coordinator")
+            return f"Hello! I'm {coordinator_name}, coordinating {agent_count} specialized AI agents to assist you."
+        else:
+            return "Generated content not available"
+    
+    async def generate_dynamic_agent_card_info(self) -> Dict[str, str]:
+        """Generate dynamic description, instructions, and greeting using summarization agent"""
+        if not self._sub_agents_info:
+            return {
+                "description": self._description,
+                "instructions": self._instruction,
+                "greeting": f"Hello! I'm {self._name}."
+            }
+        
+        # Prepare context data for the summarization agent
+        context_data = {
+            "coordinator_name": self._name,
+            "coordinator_base_description": self._description,
+            "agents": self._sub_agents_info,
+            "total_agents": len(self._sub_agents_info)
+        }
+        
+        # Generate dynamic content using summarization agent
+        description = await self._call_summarization_agent("description", context_data)
+        instructions = await self._call_summarization_agent("instructions", context_data)
+        greeting = await self._call_summarization_agent("greeting", context_data)
+        
+        logger.info(f"Dynamic agent card generated using summarization agent based on {len(self._sub_agents_info)} sub-agents")
+        logger.info(f"Generated description: {description}")
+        logger.info(f"Generated instructions preview: {instructions[:200]}...")
+        
+        return {
+            "description": description,
+            "instructions": instructions,
+            "greeting": greeting
+        }
+    
+    def get_sub_agents_info(self) -> Dict[str, Any]:
+        """Get stored sub-agents information"""
+        return self._sub_agents_info.copy()
+
     async def close(self):
         """Clean up A2A agent connections when agent is destroyed"""
         self._agent_plugins.clear()
@@ -554,86 +779,57 @@ class A2AAgentServer:
             await self.agent.create([])
         
     async def discover_a2a_agents(self) -> Dict[str, Any]:
-        """Discover available capabilities from all configured A2A agents"""
-        total_capabilities_discovered = 0
-        discovery_results = []
+        """Discover available capabilities from all configured A2A agents - delegates to agent"""
+        if not self.agent:
+            return {"success": False, "error": "Agent not initialized"}
         
-        # Clear the existing agents cache to ensure fresh discovery
-        self.available_agents = {}
-        
-        try:
-            async with aiohttp.ClientSession() as session:
-                # Use current SK agent URLs if available, otherwise use static config
-                a2a_urls_to_discover = self.agent.get_agent_list() if self.agent else self.a2a_agent_urls
+        # Use agent's discovery method if it has one, otherwise fallback
+        if hasattr(self.agent, 'discover_and_update_agent_info'):
+            result = await self.agent.discover_and_update_agent_info()
+            
+            # Extract capabilities for backward compatibility
+            if result.get("success"):
+                # Build available_agents from discovered info
+                self.available_agents = {}
+                sub_agents_info = result.get("sub_agents_info", {})
                 
-                # Iterate through all current A2A agent URLs
-                for a2a_url in a2a_urls_to_discover:
-                    try:
-                        logger.info(f"Discovering capabilities from A2A agent: {a2a_url}")
-                        
-                        # Fetch agent card
-                        async with session.get(f"{a2a_url}/.well-known/agent-card.json") as response:
-                            if response.status == 200:
-                                agent_card = await response.json()
-                                capabilities = agent_card.get("skills", [])
-                                agent_capabilities_count = len(capabilities)
-                                
-                                for capability in capabilities:
-                                    capability_name = capability.get("name", "unknown_capability")
-                                    # Avoid duplicate capability names by prefixing with agent info if needed
-                                    if capability_name in self.available_agents:
-                                        # Add agent info to distinguish duplicate capability names
-                                        agent_port = a2a_url.split(':')[-1] if ':' in a2a_url else 'unknown'
-                                        capability_name = f"{capability['name']}_agent{agent_port}"
-                                        
-                                    self.available_agents[capability_name] = capability
-                                
-                                total_capabilities_discovered += agent_capabilities_count
-                                discovery_results.append({
-                                    "url": a2a_url,
-                                    "success": True,
-                                    "capabilities_count": agent_capabilities_count,
-                                    "capabilities": [c["name"] for c in capabilities]
-                                })
-                                logger.info(f"Discovered {agent_capabilities_count} capabilities from {a2a_url}: {[c['name'] for c in capabilities]}")
-                            else:
-                                discovery_results.append({
-                                    "url": a2a_url,
-                                    "success": False,
-                                    "error": f"Failed to fetch agent card (status {response.status})"
-                                })
-                                logger.warning(f"Failed to get agent card from {a2a_url}")
-                                
-                    except Exception as e:
-                        error_msg = str(e)
-                        discovery_results.append({
-                            "url": a2a_url,
-                            "success": False,
-                            "error": error_msg
-                        })
-                        logger.error(f"Exception discovering capabilities from {a2a_url}: {error_msg}")
+                for agent_url, agent_info in sub_agents_info.items():
+                    skills = agent_info.get("skills", [])
+                    for skill in skills:
+                        capability_name = skill.get("name", "unknown_capability")
+                        # Avoid duplicate capability names by prefixing with agent info if needed
+                        if capability_name in self.available_agents:
+                            agent_port = agent_url.split(':')[-1] if ':' in agent_url else 'unknown'
+                            capability_name = f"{skill['name']}_agent{agent_port}"
+                        self.available_agents[capability_name] = skill
                 
-                # Summary
-                successful_agents = len([r for r in discovery_results if r["success"]])
-                a2a_urls_to_discover = self.agent.get_agent_list() if self.agent else self.a2a_agent_urls
-                total_agents = len(a2a_urls_to_discover)
-                
-                logger.info(f"Agent discovery complete: {total_capabilities_discovered} capabilities from {successful_agents}/{total_agents} agents")
-                logger.info(f"Available capabilities: {list(self.available_agents.keys())}")
-                
-                return {
-                    "success": total_capabilities_discovered > 0,
-                    "agents": self.available_agents,
-                    "total_capabilities": total_capabilities_discovered,
-                    "agents_contacted": total_agents,
-                    "successful_agents": successful_agents,
-                    "discovery_results": discovery_results
-                }
-                        
-        except Exception as e:
-            error_msg = str(e)
-            logger.error(f"Failed to discover A2A agents: {error_msg}")
-            return {"success": False, "error": error_msg}
+                # Add legacy fields for backward compatibility
+                result["agents"] = self.available_agents
+            
+            return result
+        else:
+            # Fallback for agents that don't support dynamic discovery
+            return {"success": False, "error": "Agent does not support dynamic discovery"}
+    
+    async def get_dynamic_agent_card_info(self) -> Dict[str, str]:
+        """Get dynamic agent card information - delegates to agent if supported"""
+        if self.agent and hasattr(self.agent, 'generate_dynamic_agent_card_info'):
+            # Get dynamic info from agent
+            dynamic_info = await self.agent.generate_dynamic_agent_card_info()
+            
+            # Update server properties with dynamic values
+            self.description = dynamic_info.get("description", self.description)
+            self.instructions = dynamic_info.get("instructions", self.instructions)
+            self.greeting = dynamic_info.get("greeting", self.greeting)
+            
+            return dynamic_info
+        else:
+            # Return static info for agents that don't support dynamic cards
+            return {
+                "description": self.description,
+                "instructions": self.instructions, 
+                "greeting": self.greeting
+            }
     
     async def process_task(self, task_message: str, session_id: str) -> str:
         """Process a task using SK agent"""
@@ -769,6 +965,9 @@ async def get_agent_card():
     if not agent.agent:
         await agent.initialize_agent()
     
+    # Get dynamic agent card info (description, instructions, greeting)
+    dynamic_info = await agent.get_dynamic_agent_card_info()
+    
     # Build skills dynamically from discovered agents
     skills = []
     for capability_name, capability_info in agent.available_agents.items():
@@ -786,7 +985,7 @@ async def get_agent_card():
     
     agent_card = {
         "name": agent.name,
-        "description": agent.description,
+        "description": dynamic_info.get("description", agent.description),
         "version": getattr(agent.config, 'version', '1.0.0') if agent.config else "1.0.0",
         "url": f"http://{agent.host}:{agent.port}",
         "preferredTransport": "http",
@@ -799,8 +998,8 @@ async def get_agent_card():
             "taskManagement": True
         },
         "skills": skills,
-        "greeting": agent.greeting,
-        "instructions": agent.instructions,
+        "greeting": dynamic_info.get("greeting", agent.greeting),
+        "instructions": dynamic_info.get("instructions", agent.instructions),
         "metadata": {
             "a2a_agent_urls": agent.a2a_agent_urls,
             "agent_id": agent.agent_id,
