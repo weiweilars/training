@@ -1,0 +1,6 @@
+starlette
+uvicorn
+aiohttp
+google-adk
+python-dotenv
+pyyaml

@@ -1,0 +1,32 @@
+# Semantic Kernel A2A Agent Requirements
+
+# Core Semantic Kernel
+semantic-kernel>=0.9.0
+
+# Web Framework
+starlette>=0.27.0
+uvicorn>=0.24.0
+
+# Async HTTP Client
+aiohttp>=3.9.0
+
+# YAML Configuration
+PyYAML>=6.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# OpenAI/Azure OpenAI Support (choose based on your provider)
+openai>=1.0.0  # For OpenAI GPT models
+# azure-identity>=1.14.0  # For Azure authentication (if using Azure OpenAI)
+
+# Google AI Support (optional, if using Google models)
+# google-generativeai>=0.3.0
+
+# Utilities
+uuid>=1.30
+typing-extensions>=4.8.0
+
+# For testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

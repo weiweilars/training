@@ -1,0 +1,23 @@
+# MCP Tools Training Materials - Requirements
+# Core dependencies for running the simplified MCP tools
+
+# FastMCP - Framework for building MCP servers
+# Optional but recommended for full HTTP server functionality
+fastmcp>=0.1.0
+
+# Standard library modules (no installation needed):
+# - os, json, datetime, pathlib, typing, argparse
+# - These are included with Python 3.7+
+
+# Optional dependencies for extended functionality:
+
+# For real weather API integration (if replacing mock data)
+# requests>=2.25.0
+
+# For advanced file processing (if extending file operations)
+# pillow>=8.0.0
+
+# Development and testing tools (optional)
+# pytest>=6.0.0
+# black>=21.0.0
+# flake8>=3.8.0

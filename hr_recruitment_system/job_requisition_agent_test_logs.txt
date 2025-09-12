@@ -1,0 +1,70 @@
+INFO:__main__:🤖 Starting SK-Powered A2A Training Agent
+INFO:__main__:🆔 Agent ID: job-requisition-agent
+INFO:__main__:🔧 MCP Tool URLs: ['http://localhost:8051/mcp', 'http://localhost:8052/mcp', 'http://localhost:8053/mcp']
+INFO:__main__:🧠 LLM Model: gpt-3.5-turbo
+INFO:__main__:🌐 Server starting on http://0.0.0.0:5020
+INFO:__main__:Using Azure AI Inference with deployment: gpt-4o
+INFO:httpx:HTTP Request: POST http://localhost:8051/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8051/mcp "HTTP/1.1 200 OK"
+INFO:__main__:Discovered 5 tools from http://localhost:8051/mcp
+INFO:__main__:Registering tool: create_job_draft with schema: {'properties': {'title': {'title': 'Title', 'type': 'string'}, 'department': {'title': 'Department', 'type': 'string'}, 'location': {'title': 'Location', 'type': 'string'}, 'employment_type': {'default': 'full-time', 'title': 'Employment Type', 'type': 'string'}, 'salary_min': {'default': 50000, 'title': 'Salary Min', 'type': 'integer'}, 'salary_max': {'default': 100000, 'title': 'Salary Max', 'type': 'integer'}}, 'required': ['title', 'department', 'location'], 'type': 'object'}
+INFO:__main__:Registered create_job_draft with 6 parameters
+INFO:__main__:Registering tool: update_job_description with schema: {'properties': {'draft_id': {'title': 'Draft Id', 'type': 'string'}, 'description': {'title': 'Description', 'type': 'string'}}, 'required': ['draft_id', 'description'], 'type': 'object'}
+INFO:__main__:Registered update_job_description with 2 parameters
+INFO:__main__:Registering tool: add_job_responsibilities with schema: {'properties': {'draft_id': {'title': 'Draft Id', 'type': 'string'}, 'responsibilities': {'title': 'Responsibilities', 'type': 'string'}}, 'required': ['draft_id', 'responsibilities'], 'type': 'object'}
+INFO:__main__:Registered add_job_responsibilities with 2 parameters
+INFO:__main__:Registering tool: set_job_requirements with schema: {'properties': {'draft_id': {'title': 'Draft Id', 'type': 'string'}, 'required_skills': {'title': 'Required Skills', 'type': 'string'}, 'preferred_skills': {'default': '', 'title': 'Preferred Skills', 'type': 'string'}, 'experience_level': {'default': 'mid', 'title': 'Experience Level', 'type': 'string'}}, 'required': ['draft_id', 'required_skills'], 'type': 'object'}
+INFO:__main__:Registered set_job_requirements with 4 parameters
+INFO:__main__:Registering tool: get_job_draft with schema: {'properties': {'draft_id': {'title': 'Draft Id', 'type': 'string'}}, 'required': ['draft_id'], 'type': 'object'}
+INFO:__main__:Registered get_job_draft with 1 parameters
+INFO:__main__:Successfully added plugin 'mcp_plugin_http_localhost_8051_mcp' with 5 MCP tools from http://localhost:8051/mcp to kernel
+INFO:httpx:HTTP Request: POST http://localhost:8052/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8052/mcp "HTTP/1.1 200 OK"
+INFO:__main__:Discovered 5 tools from http://localhost:8052/mcp
+INFO:__main__:Registering tool: submit_for_approval with schema: {'properties': {'draft_id': {'title': 'Draft Id', 'type': 'string'}, 'approver_email': {'title': 'Approver Email', 'type': 'string'}, 'priority': {'default': 'normal', 'title': 'Priority', 'type': 'string'}, 'notes': {'default': '', 'title': 'Notes', 'type': 'string'}}, 'required': ['draft_id', 'approver_email'], 'type': 'object'}
+INFO:__main__:Registered submit_for_approval with 4 parameters
+INFO:__main__:Registering tool: approve_job_posting with schema: {'properties': {'workflow_id': {'title': 'Workflow Id', 'type': 'string'}, 'approved': {'default': True, 'title': 'Approved', 'type': 'boolean'}, 'comments': {'default': '', 'title': 'Comments', 'type': 'string'}, 'approver_name': {'default': 'Manager', 'title': 'Approver Name', 'type': 'string'}}, 'required': ['workflow_id'], 'type': 'object'}
+INFO:__main__:Registered approve_job_posting with 4 parameters
+INFO:__main__:Registering tool: publish_job_posting with schema: {'properties': {'workflow_id': {'title': 'Workflow Id', 'type': 'string'}, 'job_boards': {'default': 'internal,linkedin,indeed', 'title': 'Job Boards', 'type': 'string'}, 'publish_immediately': {'default': True, 'title': 'Publish Immediately', 'type': 'boolean'}}, 'required': ['workflow_id'], 'type': 'object'}
+INFO:__main__:Registered publish_job_posting with 3 parameters
+INFO:__main__:Registering tool: get_workflow_status with schema: {'properties': {'workflow_id': {'title': 'Workflow Id', 'type': 'string'}}, 'required': ['workflow_id'], 'type': 'object'}
+INFO:__main__:Registered get_workflow_status with 1 parameters
+INFO:__main__:Registering tool: list_pending_approvals with schema: {'properties': {'approver_email': {'default': '', 'title': 'Approver Email', 'type': 'string'}}, 'type': 'object'}
+INFO:__main__:Registered list_pending_approvals with 1 parameters
+INFO:__main__:Successfully added plugin 'mcp_plugin_http_localhost_8052_mcp' with 5 MCP tools from http://localhost:8052/mcp to kernel
+INFO:httpx:HTTP Request: POST http://localhost:8053/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8053/mcp "HTTP/1.1 200 OK"
+INFO:__main__:Discovered 5 tools from http://localhost:8053/mcp
+INFO:__main__:Registering tool: list_job_templates with schema: {'properties': {'category': {'default': 'all', 'title': 'Category', 'type': 'string'}}, 'type': 'object'}
+INFO:__main__:Registered list_job_templates with 1 parameters
+INFO:__main__:Registering tool: get_job_template with schema: {'properties': {'template_id': {'title': 'Template Id', 'type': 'string'}}, 'required': ['template_id'], 'type': 'object'}
+INFO:__main__:Registered get_job_template with 1 parameters
+INFO:__main__:Registering tool: create_job_from_template with schema: {'properties': {'template_id': {'title': 'Template Id', 'type': 'string'}, 'title': {'title': 'Title', 'type': 'string'}, 'department': {'title': 'Department', 'type': 'string'}, 'location': {'title': 'Location', 'type': 'string'}, 'experience_level': {'default': 'mid', 'title': 'Experience Level', 'type': 'string'}, 'customizations': {'default': '{}', 'title': 'Customizations', 'type': 'string'}}, 'required': ['template_id', 'title', 'department', 'location'], 'type': 'object'}
+INFO:__main__:Registered create_job_from_template with 6 parameters
+INFO:__main__:Registering tool: create_custom_template with schema: {'properties': {'template_id': {'title': 'Template Id', 'type': 'string'}, 'name': {'title': 'Name', 'type': 'string'}, 'description': {'title': 'Description', 'type': 'string'}, 'responsibilities': {'title': 'Responsibilities', 'type': 'string'}, 'required_skills': {'title': 'Required Skills', 'type': 'string'}, 'preferred_skills': {'default': '', 'title': 'Preferred Skills', 'type': 'string'}, 'employment_type': {'default': 'full-time', 'title': 'Employment Type', 'type': 'string'}}, 'required': ['template_id', 'name', 'description', 'responsibilities', 'required_skills'], 'type': 'object'}
+INFO:__main__:Registered create_custom_template with 7 parameters
+INFO:__main__:Registering tool: update_template with schema: {'properties': {'template_id': {'title': 'Template Id', 'type': 'string'}, 'field': {'title': 'Field', 'type': 'string'}, 'value': {'title': 'Value', 'type': 'string'}}, 'required': ['template_id', 'field', 'value'], 'type': 'object'}
+INFO:__main__:Registered update_template with 3 parameters
+INFO:__main__:Successfully added plugin 'mcp_plugin_http_localhost_8053_mcp' with 5 MCP tools from http://localhost:8053/mcp to kernel
+INFO:__main__:SK agent 'Job_Requisition_Agent' created successfully with 3 MCP tool plugins
+INFO:__main__:SK agent initialized with 3 MCP tool plugins (using direct connection)
+INFO:__main__:🚀 SK agent initialized successfully
+INFO:     Started server process [1201380]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 5020): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+🔧 Configuration loaded from: job_requisition_agent.yaml
+🤖 SK-Powered A2A Agent Server - Configuration Example
+============================================================
+Configuration: YAML Config
+Agent ID: job-requisition-agent
+Agent Name: Job Requisition Agent
+Description: A specialized AI agent for creating, managing, and approving job postings. Handles job requirements definition, role specifications, and approval workflows.
+MCP Tool URLs: ['http://localhost:8051/mcp', 'http://localhost:8052/mcp', 'http://localhost:8053/mcp']
+Port: 5020
+LLM Model: gpt-3.5-turbo
+Personality: structured and detail-oriented, professional and thorough
+Expertise: job posting creation and workforce planning
+

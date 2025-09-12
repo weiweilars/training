@@ -1,0 +1,8 @@
+starlette
+uvicorn
+aiohttp
+google-adk
+python-dotenv
+mcp
+httpx
+anyio
