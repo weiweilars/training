@@ -157,81 +157,11 @@ cleanup_additional_processes() {
 
 # Function to show system status
 show_status() {
-    print_status "HR System Status Check..."
+    print_status "For detailed system status, use: ./status.sh"
     echo "=========================================="
 
-    # Check coordinators and master
-    echo -e "\n${BLUE}Team Coordinators & Master:${NC}"
-    COORD_PORTS="5032 5033 5034 5040"
-    for port in $COORD_PORTS; do
-        if command -v curl &> /dev/null; then
-            if curl -s --connect-timeout 2 "http://localhost:$port/.well-known/agent-card.json" &> /dev/null; then
-                echo "  ✅ Port $port: ONLINE"
-            else
-                echo "  ❌ Port $port: OFFLINE"
-            fi
-        else
-            if command -v lsof &> /dev/null; then
-                if lsof -ti :$port &> /dev/null; then
-                    echo "  ✅ Port $port: PROCESS RUNNING"
-                else
-                    echo "  ❌ Port $port: NO PROCESS"
-                fi
-            fi
-        fi
-    done
-
-    # Check individual agents
-    echo -e "\n${BLUE}Individual Agents:${NC}"
-    AGENT_PORTS="5020 5021 5022 5023 5024 5025 5026 5027 5028 5029 5030"
-    AGENTS_ONLINE=0
-    for port in $AGENT_PORTS; do
-        if command -v curl &> /dev/null; then
-            if curl -s --connect-timeout 2 "http://localhost:$port/.well-known/agent-card.json" &> /dev/null; then
-                echo "  ✅ Port $port: ONLINE"
-                ((AGENTS_ONLINE++))
-            else
-                echo "  ❌ Port $port: OFFLINE"
-            fi
-        else
-            if command -v lsof &> /dev/null; then
-                if lsof -ti :$port &> /dev/null; then
-                    echo "  ✅ Port $port: PROCESS RUNNING"
-                    ((AGENTS_ONLINE++))
-                else
-                    echo "  ❌ Port $port: NO PROCESS"
-                fi
-            fi
-        fi
-    done
-    echo "  📊 Agents online: $AGENTS_ONLINE/11"
-
-    # Check sample MCP tools
-    echo -e "\n${BLUE}MCP Tools (sample):${NC}"
-    SAMPLE_TOOL_PORTS="8051 8061 8071 8081 8091 8101 8111 8121 8131 8141"
-    TOOLS_ONLINE=0
-    for port in $SAMPLE_TOOL_PORTS; do
-        if command -v curl &> /dev/null; then
-            if curl -s --connect-timeout 2 -H "Accept: application/json, text/event-stream" -X POST "http://localhost:$port/mcp" -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}' &> /dev/null; then
-                echo "  ✅ Port $port: ONLINE"
-                ((TOOLS_ONLINE++))
-            else
-                echo "  ❌ Port $port: OFFLINE"
-            fi
-        else
-            if command -v lsof &> /dev/null; then
-                if lsof -ti :$port &> /dev/null; then
-                    echo "  ✅ Port $port: PROCESS RUNNING"
-                    ((TOOLS_ONLINE++))
-                else
-                    echo "  ❌ Port $port: NO PROCESS"
-                fi
-            fi
-        fi
-    done
-    echo "  📊 Sample tools online: $TOOLS_ONLINE/10"
-
-    echo "=========================================="
+    # Just run the better status script
+    ./status.sh
 }
 
 # Function to show usage
@@ -245,7 +175,7 @@ show_usage() {
     echo "  agents          Clean individual specialist agents"
     echo "  tools           Clean MCP tool servers"
     echo "  all             Clean everything (coordinators + agents + tools)"
-    echo "  status          Show current system status"
+    echo "  status          Show current system status (redirects to ./status.sh)"
     echo "  help            Show this help message"
     echo ""
     echo "Examples:"
@@ -253,7 +183,7 @@ show_usage() {
     echo "  $0 coordinators       # Clean only coordinators"
     echo "  $0 agents             # Clean only individual agents"
     echo "  $0 tools              # Clean only MCP tools"
-    echo "  $0 status             # Check system status"
+    echo "  $0 status             # Check system status (or use ./status.sh directly)"
     echo ""
     echo "Note: Cleanup is performed in dependency order to avoid issues"
 }
