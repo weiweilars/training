@@ -11,7 +11,6 @@ import sys
 import subprocess
 import argparse
 import time
-import signal
 
 try:
     import psutil
@@ -37,7 +36,7 @@ STARTUP_ORDER = [
 
 def find_coordinator_config(coordinator_name):
     """Find coordinator config file in team_coordinators folder"""
-    config_path = f"hr_recruitment_agents/team_coordinators/{coordinator_name}.yaml"
+    config_path = f"../../hr_recruitment_agents/team_coordinators/{coordinator_name}.yaml"
 
     if os.path.exists(config_path):
         return config_path
@@ -55,7 +54,7 @@ def run_coordinator(coordinator_name):
     port = COORDINATOR_PORTS[coordinator_name]
 
     # Paths - use our local configs directly
-    sk_server_dir = "../a2a_training/5_sk_a2a_custom_mcp_agent"
+    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
     local_config = find_coordinator_config(coordinator_name)
 
     if not os.path.exists(f"{sk_server_dir}/sk_a2a_server.py"):
@@ -64,7 +63,7 @@ def run_coordinator(coordinator_name):
 
     if not local_config:
         print(f"❌ Config file not found for coordinator: {coordinator_name}")
-        print("   Searched in: hr_recruitment_agents/team_coordinators/")
+        print("   Searched in: ../../hr_recruitment_agents/team_coordinators/")
         return False
 
     config_path = os.path.abspath(local_config)
@@ -148,7 +147,7 @@ def start_coordinator_background(coordinator_name):
 
     port = COORDINATOR_PORTS[coordinator_name]
     local_config = find_coordinator_config(coordinator_name)
-    sk_server_dir = "../a2a_training/5_sk_a2a_custom_mcp_agent"
+    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
 
     if not local_config:
         print(f"❌ Config file not found for coordinator: {coordinator_name}")

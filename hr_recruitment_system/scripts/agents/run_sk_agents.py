@@ -11,7 +11,6 @@ import sys
 import subprocess
 import argparse
 import time
-import signal
 
 try:
     import psutil
@@ -19,15 +18,16 @@ try:
 except ImportError:
     HAS_PSUTIL = False
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tools'))
 from hr_tools_config import AGENT_PORTS
 
 def find_agent_config(agent_name):
     """Find agent config file in organized folder structure"""
     # Define search paths in order of preference
     search_paths = [
-        f"hr_recruitment_agents/{agent_name}.yaml",  # Legacy flat structure
-        f"hr_recruitment_agents/individual/{agent_name}.yaml",  # Individual agents
-        f"hr_recruitment_agents/team_coordinators/{agent_name}.yaml",  # Team coordinators
+        f"../../hr_recruitment_agents/{agent_name}.yaml",  # Legacy flat structure
+        f"../../hr_recruitment_agents/individual/{agent_name}.yaml",  # Individual agents
+        f"../../hr_recruitment_agents/team_coordinators/{agent_name}.yaml",  # Team coordinators
     ]
 
     for path in search_paths:
@@ -47,7 +47,7 @@ def run_agent(agent_name):
     port = AGENT_PORTS[agent_name]
 
     # Paths - use our local configs directly
-    sk_server_dir = "../a2a_training/5_sk_a2a_custom_mcp_agent"
+    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
     local_config = find_agent_config(agent_name)
 
     if not os.path.exists(f"{sk_server_dir}/sk_a2a_server.py"):
@@ -159,7 +159,7 @@ def start_agent_background(agent_name):
 
     port = AGENT_PORTS[agent_name]
     local_config = find_agent_config(agent_name)
-    sk_server_dir = "../a2a_training/5_sk_a2a_custom_mcp_agent"
+    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
 
     if not local_config:
         print(f"❌ Config file not found for agent: {agent_name}")

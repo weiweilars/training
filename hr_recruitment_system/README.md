@@ -28,22 +28,43 @@ Our system implements a **3-level hierarchical A2A architecture** as detailed in
 
 ```
 hr_recruitment_system/
-├── 📋 HR_RECRUITMENT_ORG_CHART.md         # System architecture & organization
-├── 🔧 recruitment_tools_focused/          # 28 MCP tool implementations
-├── 👥 hr_recruitment_agents/              # Agent configurations (organized)
+├── 📋 **Main Access Files:**
+│   ├── README.md                          # This comprehensive guide
+│   ├── LOGGING_USAGE_GUIDE.md             # Logging instructions & examples
+│   ├── HR_RECRUITMENT_ORG_CHART.md        # System architecture & organization
+│   ├── cleanup.sh                         # System cleanup & management
+│   ├── start_tools.sh                     # ./start_tools.sh --start-all
+│   ├── start_agents.sh                    # ./start_agents.sh --all
+│   ├── start_coordinators.sh              # ./start_coordinators.sh --all
+│   ├── run_tests.sh                       # ./run_tests.sh {tools|agents|coordinators|master|logging}
+│   └── status.sh                          # ./status.sh
+├──
+├── 📂 **scripts/** - Organized system scripts
+│   ├── tools/                             # MCP tools management
+│   │   ├── manage_hr_tools.py             # MCP tools management
+│   │   ├── hr_tools_config.py             # Central configuration & port mapping
+│   │   └── run_hr_tool_http.py            # Individual tool HTTP server
+│   ├── agents/                            # Agent execution
+│   │   ├── run_sk_agents.py               # Individual agents runner
+│   │   └── run_coordinators.py            # Team coordinators runner
+│   └── monitoring/                        # System monitoring
+│       ├── quick_status.py                # Complete system status
+│       └── capture_api_logs.py            # API call logging & monitoring
+├──
+├── 🧪 **tests/** - 4-Level testing framework
+│   ├── test_tools.py                      # Level 1: MCP tools testing
+│   ├── test_individual_agents.py          # Level 2: Individual agents testing
+│   ├── test_coordinators.py               # Level 3: Team coordinators testing
+│   ├── test_master.py                     # Level 4: Master integration testing
+│   └── test_with_detailed_logging.py      # Comprehensive logging tests
+├──
+├── 🔧 **recruitment_tools_focused/**      # 28 MCP tool implementations
+├── 👥 **hr_recruitment_agents/**          # Agent configurations (organized)
 │   ├── individual/                        # 11 individual specialist agents
 │   └── team_coordinators/                 # 4 coordinator agents (3 teams + master)
-├── ⚙️ hr_tools_config.py                  # Central configuration & port mapping
-├── 🚀 manage_hr_tools.py                  # MCP tools management
-├── 🤖 run_sk_agents.py                    # Individual agents runner
-├── 🎯 run_coordinators.py                 # Team coordinators runner
-├── 🧪 test_tools.py                       # Level 1: MCP tools testing
-├── 🧪 test_individual_agents.py           # Level 2: Individual agents testing
-├── 🧪 test_coordinators.py                # Level 3: Team coordinators testing
-├── 🧪 test_master.py                      # Level 4: Master integration testing
-├── 🧪 run_all_tests.py                    # Complete test suite runner
-├── 🧹 cleanup.sh                          # System cleanup & management
-└── 📖 README.md                           # This comprehensive guide
+└── 📊 **test_logs/**                      # Generated logs & reports
+    ├── api_logs_*/                        # API monitoring logs
+    └── hr_test_*/                         # Comprehensive test reports
 ```
 
 ## ⚡ Quick Start Guide
@@ -52,19 +73,19 @@ hr_recruitment_system/
 
 ```bash
 # 1. Start all MCP tool servers (Level 1 - Foundation)
-python manage_hr_tools.py --start-all
+./start_tools.sh --start-all
 
 # 2. Start all individual agents (Level 2 - Specialists)
-python run_sk_agents.py --all
+./start_agents.sh --all
 
 # 3. Start team coordinators (Level 3 - Orchestration)
-python run_coordinators.py --all
+./start_coordinators.sh --all
 
 # 4. Test complete system
-python run_all_tests.py
+./run_tests.sh logging
 
 # 5. Check system status
-./cleanup.sh status
+./status.sh
 
 # 6. Cleanup everything when done
 ./cleanup.sh all
@@ -74,12 +95,15 @@ python run_all_tests.py
 
 ```bash
 # Start specific agent with tools
-python manage_hr_tools.py --start-agent-tools job_requisition_agent
-python run_sk_agents.py job_requisition_agent
+./start_tools.sh --start-agent-tools job_requisition_agent
+./start_agents.sh job_requisition_agent
 
 # Test specific layer
-python run_all_tests.py --level 2  # Test individual agents
-python run_all_tests.py --level 3  # Test coordinators
+./run_tests.sh agents      # Test individual agents
+./run_tests.sh coordinators # Test coordinators
+
+# Check system status anytime
+./status.sh
 
 # Cleanup specific layer
 ./cleanup.sh agents      # Clean only individual agents
@@ -91,52 +115,46 @@ python run_all_tests.py --level 3  # Test coordinators
 ### **🔧 MCP Tools Management (Level 1)**
 
 ```bash
-# List all 28 tools and their ports
-python manage_hr_tools.py --list
+# Convenient wrapper commands
+./start_tools.sh --list                               # List all 28 tools and their ports
+./start_tools.sh --start-all                          # Start all tools
+./start_tools.sh --start-agent-tools job_requisition_agent # Start tools for specific agent
 
-# Start all tools
-python manage_hr_tools.py --start-all
-
-# Start tools for specific agent
-python manage_hr_tools.py --start-agent-tools job_requisition_agent
-
-# Test specific tool
-python manage_hr_tools.py --test job_requisition_agent
-
-# Cleanup tools
-python manage_hr_tools.py --cleanup
+# Direct script access (organized)
+python scripts/tools/manage_hr_tools.py --list
+python scripts/tools/manage_hr_tools.py --start-all
+python scripts/tools/manage_hr_tools.py --test job_requisition_agent
+python scripts/tools/manage_hr_tools.py --cleanup
 ```
 
 ### **🤖 Individual Agents Management (Level 2)**
 
 ```bash
-# List all 11 individual agents
-python run_sk_agents.py --list
+# Convenient wrapper commands
+./start_agents.sh --list                              # List all 11 individual agents
+./start_agents.sh job_requisition_agent               # Start single agent (development)
+./start_agents.sh --all                               # Start all agents simultaneously (production)
 
-# Start single agent (development)
-python run_sk_agents.py job_requisition_agent
-
-# Start all agents simultaneously (production)
-python run_sk_agents.py --all
-
-# Cleanup agent processes
-python run_sk_agents.py --cleanup
+# Direct script access (organized)
+python scripts/agents/run_sk_agents.py --list
+python scripts/agents/run_sk_agents.py job_requisition_agent
+python scripts/agents/run_sk_agents.py --all
+python scripts/agents/run_sk_agents.py --cleanup
 ```
 
 ### **🎯 Team Coordinators Management (Level 3)**
 
 ```bash
-# List all coordinators (3 teams + 1 master)
-python run_coordinators.py --list
+# Convenient wrapper commands
+./start_coordinators.sh --list                        # List all coordinators (3 teams + 1 master)
+./start_coordinators.sh acquisition_team_agent        # Start single coordinator
+./start_coordinators.sh --all                         # Start all coordinators in proper order
 
-# Start single coordinator
-python run_coordinators.py acquisition_team_agent
-
-# Start all coordinators in proper order
-python run_coordinators.py --all
-
-# Cleanup coordinators
-python run_coordinators.py --cleanup
+# Direct script access (organized)
+python scripts/agents/run_coordinators.py --list
+python scripts/agents/run_coordinators.py acquisition_team_agent
+python scripts/agents/run_coordinators.py --all
+python scripts/agents/run_coordinators.py --cleanup
 ```
 
 ## 🧪 4-Level Testing Framework
@@ -145,38 +163,55 @@ Our testing framework validates each architectural level systematically:
 
 ### **Level 1: MCP Tools Testing**
 ```bash
-python test_tools.py                    # Test all 28 MCP tools
-python test_tools.py --tool job-creation # Test specific tool
-python test_tools.py --agent sourcing_agent # Test tools for agent
+# Convenient wrapper
+./run_tests.sh tools                     # Test all 28 MCP tools
+
+# Direct script access
+python tests/test_tools.py
+python tests/test_tools.py --tool job-creation
+python tests/test_tools.py --agent sourcing_agent
 ```
 
 ### **Level 2: Individual Agents Testing**
 ```bash
-python test_individual_agents.py         # Test all 11 individual agents
-python test_individual_agents.py --agent job_requisition_agent
-python test_individual_agents.py --list  # Show available agents
+# Convenient wrapper
+./run_tests.sh agents                    # Test all 11 individual agents
+
+# Direct script access
+python tests/test_individual_agents.py
+python tests/test_individual_agents.py --agent job_requisition_agent
+python tests/test_individual_agents.py --list
 ```
 
 ### **Level 3: Team Coordinators Testing**
 ```bash
-python test_coordinators.py              # Test all team coordinators
-python test_coordinators.py --coordinator acquisition_team_agent
-python test_coordinators.py --list       # Show available coordinators
+# Convenient wrapper
+./run_tests.sh coordinators              # Test all team coordinators
+
+# Direct script access
+python tests/test_coordinators.py
+python tests/test_coordinators.py --coordinator acquisition_team_agent
+python tests/test_coordinators.py --list
 ```
 
 ### **Level 4: Master Integration Testing**
 ```bash
-python test_master.py                    # Complete system integration
-python test_master.py --health-only      # System health check only
-python test_master.py --scenario 2       # Run specific scenario
+# Convenient wrapper
+./run_tests.sh master                    # Complete system integration
+
+# Direct script access
+python tests/test_master.py
+python tests/test_master.py --health-only
+python tests/test_master.py --scenario 2
 ```
 
-### **Complete Test Suite**
+### **Complete Test Suite with Detailed Logging**
 ```bash
-python run_all_tests.py                  # Run all 4 levels
-python run_all_tests.py --level 3        # Run specific level
-python run_all_tests.py --start-from 2   # Start from level 2
-python run_all_tests.py --continue-on-failure # Don't stop on failures
+# Convenient wrapper
+./run_tests.sh logging                   # Run comprehensive test with detailed logging
+
+# Direct script access
+python tests/test_with_detailed_logging.py
 ```
 
 ## 🧹 System Cleanup
@@ -185,7 +220,8 @@ Our `cleanup.sh` script provides granular cleanup control:
 
 ```bash
 # Show current system status
-./cleanup.sh status
+./status.sh                # Quick system status
+./cleanup.sh status        # Detailed cleanup status
 
 # Clean specific layers
 ./cleanup.sh tools         # Clean MCP tools only
@@ -205,18 +241,19 @@ Our `cleanup.sh` script provides granular cleanup control:
 
 ```bash
 # 1. Start MCP tools for job requisition agent
-python manage_hr_tools.py --start-agent-tools job_requisition_agent
+./start_tools.sh --start-agent-tools job_requisition_agent
 # Tools started: job-creation (8051), job-workflow (8052), job-templates (8053)
 
 # 2. Start the job requisition agent
-python run_sk_agents.py job_requisition_agent
+./start_agents.sh job_requisition_agent
 # Agent started on port 5020
 
 # 3. Test the agent (new terminal)
 curl http://localhost:5020/.well-known/agent-card.json
-python test_individual_agents.py --agent job_requisition_agent
+./run_tests.sh agents
 
-# 4. Cleanup
+# 4. Check status and cleanup
+./status.sh
 ./cleanup.sh agents && ./cleanup.sh tools
 ```
 
@@ -224,23 +261,24 @@ python test_individual_agents.py --agent job_requisition_agent
 
 ```bash
 # 1. Start MCP tools
-python manage_hr_tools.py --start-all
+./start_tools.sh --start-all
 
 # 2. Start individual agents for acquisition team
-python run_sk_agents.py sourcing_agent          # Port 5021
-python run_sk_agents.py resume_screening_agent  # Port 5022
-python run_sk_agents.py background_verification_agent # Port 5026
-python run_sk_agents.py analytics_reporting_agent     # Port 5028
+./start_agents.sh sourcing_agent          # Port 5021
+./start_agents.sh resume_screening_agent  # Port 5022
+./start_agents.sh background_verification_agent # Port 5026
+./start_agents.sh analytics_reporting_agent     # Port 5028
 
 # 3. Wait for agents to be ready (2-3 seconds each)
 
 # 4. Start acquisition team coordinator
-python run_coordinators.py acquisition_team_agent  # Port 5032
+./start_coordinators.sh acquisition_team_agent  # Port 5032
 
 # 5. Test team coordination
-python test_coordinators.py --coordinator acquisition_team_agent
+./run_tests.sh coordinators
 
-# 6. Cleanup
+# 6. Check status and cleanup
+./status.sh
 ./cleanup.sh all
 ```
 
@@ -248,24 +286,27 @@ python test_coordinators.py --coordinator acquisition_team_agent
 
 ```bash
 # 1. Start foundation layer
-python manage_hr_tools.py --start-all
+./start_tools.sh --start-all
 sleep 5  # Allow tools to initialize
 
 # 2. Start individual agents layer
-python run_sk_agents.py --all &
+./start_agents.sh --all &
 sleep 10  # Allow agents to start
 
 # 3. Start coordination layer
-python run_coordinators.py --all &
+./start_coordinators.sh --all &
 sleep 15  # Allow coordinators to connect
 
 # 4. Check system health
-./cleanup.sh status
+./status.sh
 
 # 5. Test complete integration
-python test_master.py
+./run_tests.sh master
 
-# 6. Cleanup everything
+# 6. Test with comprehensive logging
+./run_tests.sh logging
+
+# 7. Cleanup everything
 ./cleanup.sh all
 ```
 
@@ -356,10 +397,23 @@ ls ../a2a_training/5_sk_a2a_custom_mcp_agent/sk_a2a_server.py
 
 ## 📚 Key Files Reference
 
+### **📋 Main Documentation**
+- **[README.md](README.md)**: This comprehensive guide
 - **[HR_RECRUITMENT_ORG_CHART.md](HR_RECRUITMENT_ORG_CHART.md)**: Complete system architecture, team structures, and relationships
-- **[hr_tools_config.py](hr_tools_config.py)**: Central configuration with all port mappings and tool definitions
+- **[LOGGING_USAGE_GUIDE.md](LOGGING_USAGE_GUIDE.md)**: Detailed logging instructions and examples
+
+### **⚙️ Core Configuration**
+- **[scripts/tools/hr_tools_config.py](scripts/tools/hr_tools_config.py)**: Central configuration with all port mappings and tool definitions
 - **Individual Agent Configs**: `hr_recruitment_agents/individual/*.yaml` - 11 specialist agent configurations
 - **Coordinator Configs**: `hr_recruitment_agents/team_coordinators/*.yaml` - 4 coordinator configurations
+
+### **🚀 Convenient Entry Points**
+- **[start_tools.sh](start_tools.sh)**: Start MCP tools with various options
+- **[start_agents.sh](start_agents.sh)**: Start individual agents
+- **[start_coordinators.sh](start_coordinators.sh)**: Start team coordinators
+- **[run_tests.sh](run_tests.sh)**: Run any test level with simple commands
+- **[status.sh](status.sh)**: Quick system status overview
+- **[cleanup.sh](cleanup.sh)**: System cleanup and management
 
 ## 🎉 Production Ready Features
 

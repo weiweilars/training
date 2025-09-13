@@ -124,10 +124,10 @@ def cleanup():
 
 def test_tool(tool_name):
     """Test a tool"""
-    if tool_name not in TOOLS:
+    if tool_name not in HR_TOOLS:
         print(f"❌ Tool '{tool_name}' not found!")
         return False
-    
+
     print(f"🧪 Testing {tool_name}...")
     result = subprocess.run([sys.executable, "test_recruitment_tools.py", "--tool", tool_name])
     return result.returncode == 0
