@@ -1,8 +1,8 @@
-# ADK-Powered A2A Agent Server - Training Example
+# ADK A2A Agent Server - LLM Integration Training
 
 An advanced Agent-to-Agent (A2A) protocol compliant server implementation powered by Google's Agent Development Kit (ADK) with Gemini LLM integration and HTTP MCP tool calling capabilities. This implementation combines the A2A protocol compliance with powerful LLM reasoning and dynamic tool discovery.
 
-## A2A Protocol Compliance
+## 📜 A2A Protocol Compliance
 
 This implementation is fully compliant with the official A2A (Agent2Agent) protocol specification, providing:
 
@@ -21,11 +21,11 @@ This implementation is fully compliant with the official A2A (Agent2Agent) proto
    - Task lifecycle: submitted → working → completed/failed
    - Persistent task storage and retrieval
 
-## Features
+## ✨ Features
 
 - **A2A Protocol Compliance**: Only required endpoints, fully compliant
 - **Google ADK Integration**: Powered by Google's Agent Development Kit
-- **Gemini LLM**: Advanced reasoning with gemini-1.5-flash-latest model
+- **Gemini LLM**: Advanced reasoning with gemini-2.0-flash-exp model
 - **Dynamic MCP Tool Discovery**: Automatically discovers available tools from MCP server
 - **Dynamic Agent Card**: Agent skills are generated based on discovered MCP tools
 - **Intelligent Conversation**: LLM-powered responses with context and tool use
@@ -34,7 +34,7 @@ This implementation is fully compliant with the official A2A (Agent2Agent) proto
 - **Session Management**: Maintains conversation context across interactions
 - **Configurable**: Command-line arguments and environment variables
 
-## Prerequisites
+## 📍 Prerequisites
 
 ### 1. Google API Key Setup
 
@@ -57,17 +57,17 @@ STATELESS_HTTP=true python run_http.py weather --port 8001
 ### 3. Install ADK A2A Agent Dependencies
 
 ```bash
-cd ../a2a_training/adk_a2a_agent
+cd ../a2a_training/1_adk_a2a_agent
 pip install -r requirements.txt
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Start the ADK A2A Agent Server
 
 ```bash
 # Navigate to the agent folder
-cd adk_a2a_agent
+cd 1_adk_a2a_agent
 
 # Default settings (connects to weather MCP on port 8001, uses port 5002)
 python adk_a2a_server.py
@@ -81,7 +81,7 @@ MCP_TOOL_URL=http://localhost:8001/mcp python adk_a2a_server.py
 
 The ADK A2A agent server will start on `http://localhost:5002` by default.
 
-## A2A Protocol Endpoints
+## 🔗 A2A Protocol Endpoints
 
 This server implements the minimal required A2A endpoints:
 
@@ -95,7 +95,7 @@ This server implements the minimal required A2A endpoints:
   - `tasks/cancel` - Cancel running tasks
   - `send-task` - Legacy task format support
 
-## Testing the ADK A2A Agent
+## 🧪 Testing the ADK A2A Agent
 
 ### 1. Agent Discovery
 
@@ -186,7 +186,7 @@ curl -X POST http://localhost:5002 \
   }' | python -m json.tool
 ```
 
-## LLM-Powered Capabilities
+## 🤖 LLM-Powered Capabilities
 
 ### Advanced Conversational AI
 
@@ -211,7 +211,7 @@ The ADK agent provides sophisticated conversational capabilities:
 - User: "Compare the weather in London and Tokyo"
 - Agent: Makes multiple tool calls and provides comparative analysis
 
-## Dynamic Tool Discovery
+## 🔍 Dynamic Tool Discovery
 
 The agent automatically discovers and integrates with available MCP tools:
 
@@ -227,7 +227,7 @@ The agent automatically discovers and integrates with available MCP tools:
 3. **convert_temperature**: Convert temperature between units
 4. **General conversation**: Advanced LLM-powered dialogue
 
-## Configuration
+## ⚙️ Configuration
 
 ### Command Line Options
 
@@ -248,17 +248,17 @@ python adk_a2a_server.py --help
 - `AGENT_PORT`: Server port
 - `GOOGLE_API_KEY`: Google API key for Gemini (required)
 
-## Google ADK Integration
+## 🔗 Google ADK Integration
 
 The agent integrates Google's Agent Development Kit:
 
-- **LLM Model**: gemini-1.5-flash-latest
+- **LLM Model**: gemini-2.0-flash-exp
 - **Session Management**: Maintains conversation context
 - **Memory Service**: Remembers interactions
 - **Tool Integration**: Seamlessly uses MCP tools
 - **Runner Framework**: Coordinates all components
 
-## Comparison with Simple A2A Agent
+## ⚖️ Comparison with Simple A2A Agent
 
 | Feature | Simple A2A Agent | ADK A2A Agent |
 |---------|------------------|---------------|
@@ -270,7 +270,7 @@ The agent integrates Google's Agent Development Kit:
 | **A2A Compliance** | ✅ Full compliance | ✅ Full compliance |
 | **Setup Complexity** | ✅ Simple | ⚠️ Requires Google API key |
 
-## A2A Protocol Reference
+## 📚 A2A Protocol Reference
 
 This implementation follows the official A2A protocol specification:
 
@@ -283,7 +283,7 @@ This implementation follows the official A2A protocol specification:
 
 The implementation demonstrates how to enhance A2A agents with advanced LLM capabilities while maintaining full protocol compliance.
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Google API Key Issues
 
@@ -331,7 +331,7 @@ If you see agent name validation errors like "Found invalid agent name":
 # e.g., "ADK A2A Training Agent" → "ADK_A2A_Training_Agent"
 ```
 
-## Training Benefits
+## 🏆 Training Benefits
 
 This ADK-powered A2A agent demonstrates:
 

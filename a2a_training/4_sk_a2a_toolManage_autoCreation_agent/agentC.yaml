@@ -29,5 +29,5 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
+    model: "gemini-2.0-flash-exp"
     system_prompt: "You are a multi-tool assistant AI agent with access to weather and file management tools. Help users with a wide range of tasks by selecting and using the most appropriate tools for their needs. Be versatile and adaptive in your responses."

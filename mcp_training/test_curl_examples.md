@@ -8,13 +8,13 @@ Start your MCP server first:
 ```bash
 # For stateless mode (default)
 STATELESS_HTTP=true python run_http.py file --port 8003
-STATELESS_HTTP=true python run_http.py weather --port 8002
-STATELESS_HTTP=true python run_http.py calculator --port 8001
+STATELESS_HTTP=true python run_http.py weather --port 8001
+STATELESS_HTTP=true python run_http.py calculator --port 8002
 
 # For stateful mode
 STATELESS_HTTP=false python run_http.py file --port 8003
-STATELESS_HTTP=false python run_http.py weather --port 8002
-STATELESS_HTTP=false python run_http.py calculator --port 8001
+STATELESS_HTTP=false python run_http.py weather --port 8001
+STATELESS_HTTP=false python run_http.py calculator --port 8002
 ```
 
 ## Stateless Mode Testing
@@ -88,9 +88,9 @@ curl -X POST http://localhost:8003/mcp \
   }' 
 ```
 
-### 2. Weather Tools (port 8002)
+### 2. Weather Tools (port 8001)
 
-Start weather server: `STATELESS_HTTP=true python run_http.py weather --port 8002`
+Start weather server: `STATELESS_HTTP=true python run_http.py weather --port 8001`
 
 #### List Available Tools
 ```bash
@@ -161,13 +161,13 @@ curl -X POST http://localhost:8002/mcp \
   }' 
 ```
 
-### 3. Calculator Tools (port 8001)
+### 3. Calculator Tools (port 8002)
 
-Start calculator server: `STATELESS_HTTP=true python run_http.py calculator --port 8001`
+Start calculator server: `STATELESS_HTTP=true python run_http.py calculator --port 8002`
 
 #### List Available Tools
 ```bash
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -180,7 +180,7 @@ curl -X POST http://localhost:8001/mcp \
 #### Basic Math Operations
 ```bash
 # Addition
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -198,7 +198,7 @@ curl -X POST http://localhost:8001/mcp \
   }'
 
 # Division
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -216,7 +216,7 @@ curl -X POST http://localhost:8001/mcp \
   }'
 
 # Power operation
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -237,7 +237,7 @@ curl -X POST http://localhost:8001/mcp \
 #### Advanced Math Functions
 ```bash
 # Square root
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -254,7 +254,7 @@ curl -X POST http://localhost:8001/mcp \
   }'
 
 # Sine function
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -271,7 +271,7 @@ curl -X POST http://localhost:8001/mcp \
   }'
 
 # Logarithm with custom base
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -292,7 +292,7 @@ curl -X POST http://localhost:8001/mcp \
 #### Expression Evaluation
 ```bash
 # Simple expression
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -308,7 +308,7 @@ curl -X POST http://localhost:8001/mcp \
   }'
 
 # Complex expression with functions
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -437,9 +437,9 @@ curl -X POST http://localhost:8003/mcp \
   }' 
 ```
 
-### 2. Weather Tools (Stateful - port 8002)
+### 2. Weather Tools (Stateful - port 8001)
 
-Start server: `STATELESS_HTTP=false python run_http.py weather --port 8002`
+Start server: `STATELESS_HTTP=false python run_http.py weather --port 8001`
 
 #### Initialize Session
 ```bash
@@ -547,9 +547,9 @@ curl -X POST http://localhost:8002/mcp \
   }' 
 ```
 
-### 3. Calculator Tools (Stateful - port 8001)
+### 3. Calculator Tools (Stateful - port 8002)
 
-Start server: `STATELESS_HTTP=false python run_http.py calculator --port 8001`
+Start server: `STATELESS_HTTP=false python run_http.py calculator --port 8002`
 
 #### Initialize Session
 ```bash
@@ -582,7 +582,7 @@ echo "Calculator Session ID: $CALC_SESSION_ID"
 #### Send Required Notifications
 ```bash
 # Step 2: Send notifications/initialized
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -H "Mcp-Session-Id: $CALC_SESSION_ID" \
@@ -595,7 +595,7 @@ curl -X POST http://localhost:8001/mcp \
 #### Use Calculator Tools with Session
 ```bash
 # Basic math with session
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -H "Mcp-Session-Id: $CALC_SESSION_ID" \
@@ -614,7 +614,7 @@ curl -X POST http://localhost:8001/mcp \
   }'
 
 # Advanced math with session
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -H "Mcp-Session-Id: $CALC_SESSION_ID" \
@@ -632,7 +632,7 @@ curl -X POST http://localhost:8001/mcp \
   }'
 
 # Expression evaluation with session
-curl -X POST http://localhost:8001/mcp \
+curl -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -H "Mcp-Session-Id: $CALC_SESSION_ID" \
@@ -686,13 +686,13 @@ echo "✅ Cleanup complete"
 ```bash
 # Start servers in background
 STATELESS_HTTP=true python run_http.py file --port 8000 &
-STATELESS_HTTP=true python run_http.py calculator --port 8001 &
-STATELESS_HTTP=true python run_http.py weather --port 8002 &
+STATELESS_HTTP=true python run_http.py calculator --port 8002 &
+STATELESS_HTTP=true python run_http.py weather --port 8001 &
 
 # Check if servers are running
 curl -s http://localhost:8000/mcp >/dev/null && echo "✅ File server running"
-curl -s http://localhost:8001/mcp >/dev/null && echo "✅ Calculator server running"
-curl -s http://localhost:8002/mcp >/dev/null && echo "✅ Weather server running"
+curl -s http://localhost:8002/mcp >/dev/null && echo "✅ Calculator server running"
+curl -s http://localhost:8001/mcp >/dev/null && echo "✅ Weather server running"
 
 # Kill background servers
 kill $(jobs -p)
@@ -700,6 +700,6 @@ kill $(jobs -p)
 
 ### Notes
 - Use `jq` for pretty JSON formatting, or remove `| jq` if not installed
-- File tools default to port 8000, calculator tools to port 8001, weather tools to port 8002
+- File tools default to port 8000, weather tools to port 8001, calculator tools to port 8002
 - Session IDs are required for stateful mode operations
 - Always send the `notifications/initialized` message after session initialization

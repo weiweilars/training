@@ -1,8 +1,8 @@
-# ADK-Powered A2A Agent Server - Training Example
+# ADK A2A Agent Server - Dynamic Tool Management Training
 
-An advanced Agent-to-Agent (A2A) protocol compliant server implementation powered by Google's Agent Development Kit (ADK) with Gemini LLM integration and HTTP MCP tool calling capabilities. This implementation combines the A2A protocol compliance with powerful LLM reasoning and dynamic tool discovery.
+An advanced A2A agent server that demonstrates **runtime tool management** capabilities. This implementation extends the base ADK A2A agent with the ability to add and remove MCP tools dynamically while preserving conversation sessions and maintaining A2A protocol compliance.
 
-## A2A Protocol Compliance
+## 📜 A2A Protocol Compliance
 
 This implementation is fully compliant with the official A2A (Agent2Agent) protocol specification, providing:
 
@@ -27,12 +27,12 @@ This implementation is fully compliant with the official A2A (Agent2Agent) proto
    - Task lifecycle: submitted → working → completed/failed
    - Persistent task storage and retrieval
 
-## Features
+## ✨ Features
 
 - **A2A Protocol Compliance**: Only required endpoints, fully compliant
 - **Dynamic Tool Management**: Add/remove MCP tools at runtime with session preservation
 - **Google ADK Integration**: Powered by Google's Agent Development Kit
-- **Gemini LLM**: Advanced reasoning with gemini-1.5-flash-latest model
+- **Gemini LLM**: Advanced reasoning with gemini-2.0-flash-exp model
 - **Dynamic MCP Tool Discovery**: Automatically discovers available tools from MCP server
 - **Dynamic Agent Card**: Agent skills are generated based on discovered MCP tools
 - **Session Preservation**: Maintains conversation context across tool changes
@@ -42,7 +42,7 @@ This implementation is fully compliant with the official A2A (Agent2Agent) proto
 - **Tool Change History**: Complete audit trail of tool additions/removals
 - **Configurable**: Command-line arguments and environment variables
 
-## Prerequisites
+## 📍 Prerequisites
 
 ### 1. Google API Key Setup
 
@@ -79,7 +79,7 @@ cd ../a2a_training/2_adk_a2a_toolManage_agent
 pip install -r requirements.txt
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Start the ADK A2A Agent Server
 
@@ -99,7 +99,7 @@ MCP_TOOL_URL=http://localhost:8002/mcp python adk_a2a_server.py
 
 The ADK A2A agent server will start on `http://localhost:5002` by default.
 
-## Testing the ADK A2A Agent
+## 🧪 Testing the Dynamic Tool Management
 
 ### 1. Agent Discovery
 
@@ -344,7 +344,7 @@ python adk_a2a_server.py --help
 
 The agent integrates Google's Agent Development Kit:
 
-- **LLM Model**: gemini-1.5-flash-latest
+- **LLM Model**: gemini-2.0-flash-exp
 - **Session Management**: Maintains conversation context
 - **Memory Service**: Remembers interactions
 - **Tool Integration**: Seamlessly uses MCP tools

@@ -1,13 +1,13 @@
-# HR Recruitment Team Coordinator Agent
+# HR Recruitment Master Coordinator Agent
 agent:
-  id: "hr-team-coordinator"
-  name: "HR Team Coordinator Agent"
+  id: "master-coordinator-agent"
+  name: "Master Coordinator Agent"
   version: "1.0.0"
   description: "Master coordinator agent that orchestrates multiple HR recruitment teams in parallel workflows, manages handoffs, and ensures optimal resource utilization."
   
   # Agent Card Properties
   card:
-    greeting: "Hello! I'm your HR Team Coordinator. I orchestrate multiple recruitment teams working in parallel to hire efficiently. I manage job pipelines, candidate flows, and team coordination."
+    greeting: "Hello! I'm your Master Coordinator. I orchestrate multiple recruitment teams working in parallel to hire efficiently. I manage job pipelines, candidate flows, and team coordination."
     instructions: "Ask me to start a recruitment process, coordinate teams, track parallel workflows, or optimize recruitment efficiency. I coordinate Job Pipeline, Candidate Acquisition, Experience, and Closing teams."
     
   # Agent Personality & Behavior
@@ -16,33 +16,34 @@ agent:
     tone: "commanding and efficient"
     expertise: "multi-agent coordination and workflow optimization"
     
-  # Team Coordination Tools
-  tools:
+  # A2A Team Coordination - Coordinates with team-level agents
+  agents:
     default_urls:
-      - "http://localhost:8201/mcp"  # Team Orchestration MCP server
-      - "http://localhost:8202/mcp"  # Workflow Coordination MCP server
-      - "http://localhost:8203/mcp"  # Resource Management MCP server
+      - "http://localhost:5031"  # Job Pipeline Team Agent
+      - "http://localhost:5032"  # Acquisition Team Agent
+      - "http://localhost:5033"  # Experience Team Agent
+      - "http://localhost:5034"  # Closing Team Agent
     
-  # Team Management
+  # Team Management - Now using dedicated team coordinator agents
   teams:
     job_pipeline_team:
-      leader: "job-requisition-agent"
-      members: ["compliance-agent", "analytics-reporting-agent"] 
+      coordinator: "job-pipeline-team-agent"
+      port: 5031
       purpose: "Job creation, approval, and posting workflow"
-      
+
     candidate_acquisition_team:
-      leader: "sourcing-agent"
-      members: ["resume-screening-agent", "background-verification-agent"]
+      coordinator: "acquisition-team-agent"
+      port: 5032
       purpose: "Find, evaluate, and validate candidates"
-      
+
     candidate_experience_team:
-      leader: "communication-agent"
-      members: ["interview-scheduling-agent", "assessment-agent"]
+      coordinator: "experience-team-agent"
+      port: 5033
       purpose: "Manage candidate journey and experience"
-      
+
     closing_team:
-      leader: "offer-management-agent"
-      members: ["analytics-reporting-agent", "compliance-agent"]
+      coordinator: "closing-team-agent"
+      port: 5034
       purpose: "Finalize offers and complete hiring process"
     
   # Parallel Workflows
@@ -76,10 +77,10 @@ agent:
     
   # Server Configuration
   server:
-    default_port: 5030
+    default_port: 5040
     host: "0.0.0.0"
     
   # LLM Configuration  
   llm:
     model: "gemini-1.5-flash-latest"
-    system_prompt: "You are a master HR recruitment coordinator managing multiple specialized teams. Orchestrate parallel workflows, optimize resource utilization, manage team handoffs, and ensure efficient hiring processes. Coordinate Job Pipeline, Candidate Acquisition, Experience, and Closing teams simultaneously when beneficial."
+    system_prompt: "You are a master HR recruitment coordinator managing four specialized team agents through A2A communication. You orchestrate Job Pipeline Team Agent (5031), Acquisition Team Agent (5032), Experience Team Agent (5033), and Closing Team Agent (5034). Each team agent coordinates their own sub-agents. Route requests to appropriate team agents: job creation to Job Pipeline Team, candidate sourcing to Acquisition Team, candidate interactions to Experience Team, and offer management to Closing Team. Manage parallel workflows and cross-team coordination."

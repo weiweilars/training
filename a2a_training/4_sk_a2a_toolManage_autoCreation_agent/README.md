@@ -1,4 +1,4 @@
-# SK A2A Agent - Semantic Kernel Configuration-Driven Agent Creation
+# Semantic Kernel A2A Agent Server - Configuration-Driven Agent Creation
 
 Create different specialized AI agents using Microsoft Semantic Kernel with configurable personalities, tools, and behaviors through YAML configuration files.
 

@@ -10,7 +10,6 @@ import os
 import sys
 import subprocess
 import argparse
-import shutil
 import time
 import signal
 
@@ -22,29 +21,47 @@ except ImportError:
 
 from hr_tools_config import AGENT_PORTS
 
+def find_agent_config(agent_name):
+    """Find agent config file in organized folder structure"""
+    # Define search paths in order of preference
+    search_paths = [
+        f"hr_recruitment_agents/{agent_name}.yaml",  # Legacy flat structure
+        f"hr_recruitment_agents/individual/{agent_name}.yaml",  # Individual agents
+        f"hr_recruitment_agents/team_coordinators/{agent_name}.yaml",  # Team coordinators
+    ]
+
+    for path in search_paths:
+        if os.path.exists(path):
+            return path
+
+    return None
+
 def run_agent(agent_name):
     """Run a single agent with SK implementation"""
-    
+
     if agent_name not in AGENT_PORTS:
         print(f"❌ Unknown agent: {agent_name}")
         print(f"Available agents: {', '.join(AGENT_PORTS.keys())}")
         return False
-    
+
     port = AGENT_PORTS[agent_name]
-    
-    # Paths (assuming we're in hr_recruitment_system folder)
+
+    # Paths - use our local configs directly
     sk_server_dir = "../a2a_training/5_sk_a2a_custom_mcp_agent"
-    target_config = f"{sk_server_dir}/{agent_name}.yaml"
-    
+    local_config = find_agent_config(agent_name)
+
     if not os.path.exists(f"{sk_server_dir}/sk_a2a_server.py"):
         print(f"❌ SK server not found: {sk_server_dir}/sk_a2a_server.py")
         return False
-    
-    if not os.path.exists(target_config):
-        print(f"❌ Config file not found: {target_config}")
+
+    if not local_config:
+        print(f"❌ Config file not found for agent: {agent_name}")
+        print("   Searched in: hr_recruitment_agents/[individual|team_coordinators]/")
         return False
-    
-    print(f"ℹ️  Using config: {target_config}")
+
+    config_path = os.path.abspath(local_config)
+
+    print(f"ℹ️  Using config: {config_path}")
     
     print(f"\n{'='*60}")
     print(f" Starting {agent_name} (Semantic Kernel) ")
@@ -58,9 +75,9 @@ def run_agent(agent_name):
     try:
         os.chdir(sk_server_dir)
         subprocess.run([
-            sys.executable, 
-            "sk_a2a_server.py", 
-            "--config", f"{agent_name}.yaml",
+            sys.executable,
+            "sk_a2a_server.py",
+            "--config", config_path,
             "--port", str(port)
         ])
         
@@ -139,31 +156,30 @@ def start_agent_background(agent_name):
     if agent_name not in AGENT_PORTS:
         print(f"❌ Unknown agent: {agent_name}")
         return None
-    
+
     port = AGENT_PORTS[agent_name]
-    config_file = f"hr_recruitment_agents/{agent_name}.yaml"
+    local_config = find_agent_config(agent_name)
     sk_server_dir = "../a2a_training/5_sk_a2a_custom_mcp_agent"
-    
-    if not os.path.exists(config_file):
-        print(f"❌ Config file not found: {config_file}")
+
+    if not local_config:
+        print(f"❌ Config file not found for agent: {agent_name}")
         return None
-    
+
     if not os.path.exists(f"{sk_server_dir}/sk_a2a_server.py"):
         print(f"❌ SK server not found: {sk_server_dir}/sk_a2a_server.py")
         return None
-    
-    # Copy config to SK server directory
-    target_config = f"{sk_server_dir}/{agent_name}.yaml"
-    shutil.copy2(config_file, target_config)
+
+    config_path = os.path.abspath(local_config)
+    # No need to copy - use config directly
     
     print(f"🚀 Starting {agent_name} on port {port}...")
     
     # Start in background
     try:
         proc = subprocess.Popen([
-            sys.executable, 
-            "sk_a2a_server.py", 
-            "--config", f"{agent_name}.yaml",
+            sys.executable,
+            "sk_a2a_server.py",
+            "--config", config_path,
             "--port", str(port)
         ], cwd=sk_server_dir)
         

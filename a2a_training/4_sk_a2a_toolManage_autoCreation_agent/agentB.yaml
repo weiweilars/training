@@ -28,5 +28,5 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
+    model: "gemini-2.0-flash-exp"
     system_prompt: "You are a file management specialist AI agent. Focus on helping users with file operations, document organization, and file system tasks. Always prioritize security and ask for confirmation before making destructive changes."

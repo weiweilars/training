@@ -1,8 +1,8 @@
-# Minimal A2A Agent Server - Training Example
+# Simple A2A Agent Server - Training Example
 
 A minimal Agent-to-Agent (A2A) protocol compliant server implementation with HTTP MCP tool calling capabilities. This implementation follows the official A2A specification and provides only the required endpoints for A2A compliance.
 
-## A2A Protocol Compliance
+## 📜 A2A Protocol Compliance
 
 This implementation is compliant with the official A2A (Agent2Agent) protocol specification, providing:
 
@@ -21,7 +21,7 @@ This implementation is compliant with the official A2A (Agent2Agent) protocol sp
    - Task lifecycle: submitted → working → completed/failed
    - Persistent task storage and retrieval
 
-## Features
+## ✨ Features
 
 - **Minimal A2A Compliance**: Only required endpoints, no extra bloat
 - **Dynamic MCP Tool Discovery**: Automatically discovers available tools from MCP server
@@ -31,7 +31,7 @@ This implementation is compliant with the official A2A (Agent2Agent) protocol sp
 - **Intelligent Task Processing**: Matches user requests to appropriate discovered tools
 - **Configurable**: Command-line arguments and environment variables
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
@@ -46,7 +46,7 @@ This implementation is compliant with the official A2A (Agent2Agent) protocol sp
 
 2. **Install A2A Agent Dependencies**:
    ```bash
-   cd ../a2a_training/simple_a2a_agent
+   cd ../a2a_training/0_simple_a2a_agent
    pip install -r requirements.txt
    ```
 
@@ -54,7 +54,7 @@ This implementation is compliant with the official A2A (Agent2Agent) protocol sp
 
 ```bash
 # Navigate to the agent folder
-cd simple_a2a_agent
+cd 0_simple_a2a_agent
 
 # Default settings (connects to weather MCP on port 8001)
 python simple_a2a_server.py
@@ -68,7 +68,7 @@ MCP_TOOL_URL=http://localhost:8001/mcp python simple_a2a_server.py
 
 The A2A agent server will start on `http://localhost:5001` by default.
 
-## A2A Protocol Endpoints
+## 🔗 A2A Protocol Endpoints
 
 This server implements the minimal required A2A endpoints:
 
@@ -82,7 +82,7 @@ This server implements the minimal required A2A endpoints:
   - `tasks/cancel` - Cancel running tasks
   - `send-task` - Legacy task format support
 
-## Testing the A2A Agent
+## 🧪 Testing the A2A Agent
 
 ### 1. Agent Discovery
 ```bash
@@ -162,7 +162,7 @@ curl -X POST http://localhost:5001 \
   }' | python -m json.tool
 ```
 
-## Dynamic Tool Discovery
+## 🔍 Dynamic Tool Discovery
 
 The agent automatically discovers what tools are available from the connected MCP server:
 
@@ -178,7 +178,7 @@ The agent automatically discovers what tools are available from the connected MC
 3. **convert_temperature**: Convert temperature between units
 4. **General responses**: For non-tool conversations
 
-## Configuration
+## ⚙️ Configuration
 
 ### Command Line Options
 ```bash
@@ -196,7 +196,7 @@ python simple_a2a_server.py --help
 - `AGENT_NAME`: Agent name
 - `AGENT_PORT`: Server port
 
-## MCP Tool Integration
+## 🔧 MCP Tool Integration
 
 The agent integrates with MCP tools via HTTP:
 - **Weather**: `get_current_weather` - Get weather data for cities
@@ -207,7 +207,7 @@ The agent automatically detects task intent and calls appropriate MCP tools:
 - Weather queries trigger calls to the weather MCP tool
 - Simple responses for non-weather queries
 
-## A2A Protocol Reference
+## 📚 A2A Protocol Reference
 
 This implementation follows the official A2A protocol specification:
 - **Transport**: HTTP with JSON-RPC 2.0

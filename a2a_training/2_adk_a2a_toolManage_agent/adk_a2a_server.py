@@ -675,7 +675,7 @@ async def get_agent_card(request):
             "mcp_tool_urls": agent.adk_agent._tools if agent.adk_agent and hasattr(agent.adk_agent, '_tools') else [],
             "agent_id": agent.agent_id,
             "status": agent.status,
-            "llm_model": "gemini-1.5-flash-latest",
+            "llm_model": "gemini-2.0-flash-exp",
             "adk_powered": True,
             "active_tools_count": len(agent.adk_agent._tools) if agent.adk_agent and hasattr(agent.adk_agent, '_tools') else 0
         }
@@ -906,13 +906,13 @@ if __name__ == "__main__":
     print(f"Agent Name: {agent.name}")
     print(f"MCP Tool URL: {agent.mcp_tool_url}")
     print(f"Port: {agent.port}")
-    print(f"LLM Model: gemini-1.5-flash-latest")
+    print(f"LLM Model: gemini-2.0-flash-exp")
     print()
     
     logger.info("🤖 Starting ADK-Powered A2A Training Agent")
     logger.info(f"🆔 Agent ID: {agent.agent_id}")
     logger.info(f"🔧 MCP Tool URL: {agent.mcp_tool_url}")
-    logger.info(f"🧠 LLM Model: gemini-1.5-flash-latest")
+    logger.info(f"🧠 LLM Model: gemini-2.0-flash-exp")
     logger.info(f"🌐 Server starting on http://0.0.0.0:{agent.port}")
     
     # Initialize the ADK agent

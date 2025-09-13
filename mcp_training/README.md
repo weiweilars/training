@@ -2,7 +2,7 @@
 
 Simplified, single-page examples of MCP (Model Context Protocol) tools for training purposes.
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 # Install dependencies (optional)
@@ -20,7 +20,7 @@ curl -X POST http://localhost:8000/mcp \
   -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | jq
 ```
 
-## Available Tools
+## 🧰 Available Tools
 
 | Tool | File | Purpose | Key Functions |
 |------|------|---------|---------------|
@@ -28,7 +28,7 @@ curl -X POST http://localhost:8000/mcp \
 | **Weather** | `simple_weather_tool.py` | Weather info (mock data) | `get_current_weather`, `get_weather_forecast`, `convert_temperature` |
 | **Calculator** | `simple_calculator_tool.py` | Mathematical operations | `basic_math`, `advanced_math`, `evaluate_expression` |
 
-## Usage
+## 📋 Usage
 
 ### Universal Launcher
 Use `run_http.py` to start any tool as an HTTP server:
@@ -55,7 +55,7 @@ python simple_weather_tool.py
 python simple_calculator_tool.py
 ```
 
-## Testing
+## 🧪 Testing
 
 ### Basic Testing
 ```bash
@@ -65,13 +65,15 @@ python run_http.py file
 # List tools
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | jq
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
 
 # Call a tool
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", 
-       "params": {"name": "list_files", "arguments": {}}}' | jq
+       "params": {"name": "list_files", "arguments": {}}}'
 ```
 
 ### Complete Testing Guide
@@ -80,7 +82,7 @@ See **[test_curl_examples.md](test_curl_examples.md)** for:
 - Both stateless and stateful modes
 - Ready-to-use bash scripts
 
-## Setup
+## ⚙️ Setup
 
 ### Requirements
 - Python 3.7+
@@ -112,7 +114,7 @@ export WEATHER_API_KEY="your_api_key_here"    # For real weather API
 export CALC_PRECISION="6"                     # Decimal places for results
 ```
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Port Issues
 ```bash
@@ -134,7 +136,7 @@ kill %1                 # Kill specific job
 kill $(jobs -p)         # Kill all background jobs
 ```
 
-## Features & Training
+## ✨ Features & Training
 
 ### Key Features
 - **Single-page design** - Each tool in one file for easy learning

@@ -169,6 +169,7 @@ HR_TOOLS = {
 
 # Agent ports
 AGENT_PORTS = {
+    # Individual Specialist Agents
     "job_requisition_agent": 5020,
     "sourcing_agent": 5021,
     "resume_screening_agent": 5022,
@@ -179,7 +180,18 @@ AGENT_PORTS = {
     "offer_management_agent": 5027,
     "analytics_reporting_agent": 5028,
     "compliance_agent": 5029,
-    "team_coordinator_agent": 5030
+
+    # Summarization Agent (matches 6_sk pattern)
+    "hr_summarization_agent": 5030,
+
+    # Team Coordinator Agents (Level 2)
+    "job_pipeline_team_agent": 5031,
+    "acquisition_team_agent": 5032,
+    "experience_team_agent": 5033,
+    "closing_team_agent": 5034,
+
+    # Master Coordinator Agent (Level 3)
+    "master_coordinator_agent": 5040
 }
 
 def get_tools_for_agent(agent_name):
@@ -231,8 +243,23 @@ AGENT_TEST_CONFIG = {
     "compliance_agent": {
         "test": "Ensure GDPR and EEOC compliance in recruitment process. Audit data handling practices and generate compliance reports."
     },
-    "team_coordinator_agent": {
-        "test": "Coordinate full hiring process for Senior Software Engineer with 15 candidates in pipeline."
+    "hr_summarization_agent": {
+        "test": "Generate recruitment summary for Q4 hiring: 25 positions filled, 150 candidates processed, team performance analysis."
+    },
+    "job_pipeline_team_agent": {
+        "test": "Coordinate job creation workflow for Senior Python Developer position: create posting, ensure compliance, track analytics."
+    },
+    "acquisition_team_agent": {
+        "test": "Coordinate candidate acquisition for React Developer role: source candidates, screen resumes, run background checks."
+    },
+    "experience_team_agent": {
+        "test": "Coordinate candidate experience for 5 finalists: manage communications, schedule interviews, conduct assessments."
+    },
+    "closing_team_agent": {
+        "test": "Coordinate offer process for top candidate: generate offer, handle negotiations, ensure compliance, complete hire."
+    },
+    "master_coordinator_agent": {
+        "test": "Orchestrate full hiring process for Senior Software Engineer: coordinate all teams, manage 15 candidates in pipeline."
     }
 }
 

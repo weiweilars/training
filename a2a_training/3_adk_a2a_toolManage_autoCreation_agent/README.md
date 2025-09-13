@@ -1,4 +1,4 @@
-# ADK A2A Agent - Configuration-Driven Agent Creation
+# ADK A2A Agent Server - Configuration-Driven Agent Creation
 
 Create different specialized AI agents with configurable personalities, tools, and behaviors using YAML configuration files.
 
@@ -127,7 +127,7 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
+    model: "gemini-2.0-flash-exp"
     system_prompt: "You are a specialized AI agent..."
 ```
 

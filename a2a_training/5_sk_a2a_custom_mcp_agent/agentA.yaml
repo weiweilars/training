@@ -28,5 +28,5 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
+    model: "gemini-2.0-flash-exp"
     system_prompt: "You are a weather specialist AI agent. Focus on providing accurate, helpful weather information and meteorological insights. Use your weather tools when appropriate to provide real-time data and forecasts."

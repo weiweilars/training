@@ -72,7 +72,7 @@ from google.adk import Agent, Runner, MemoryService
 
 async def initialize_adk_agent():
     agent = Agent(
-        model="gemini-1.5-flash-latest",
+        model="gemini-2.0-flash-exp",
         tools=discovered_tools,
         memory_service=MemoryService()
     )
