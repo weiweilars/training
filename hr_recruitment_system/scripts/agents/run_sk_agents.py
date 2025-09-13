@@ -19,20 +19,25 @@ except ImportError:
     HAS_PSUTIL = False
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tools'))
-from hr_tools_config import AGENT_PORTS
+from hr_tools_config import AGENT_PORTS, INDIVIDUAL_AGENT_PORTS
 
 def find_agent_config(agent_name):
     """Find agent config file in organized folder structure"""
+    # Get the script directory and work from there
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    hr_system_root = os.path.join(script_dir, '..', '..')
+
     # Define search paths in order of preference
     search_paths = [
-        f"../../hr_recruitment_agents/{agent_name}.yaml",  # Legacy flat structure
-        f"../../hr_recruitment_agents/individual/{agent_name}.yaml",  # Individual agents
-        f"../../hr_recruitment_agents/team_coordinators/{agent_name}.yaml",  # Team coordinators
+        os.path.join(hr_system_root, "hr_recruitment_agents", f"{agent_name}.yaml"),  # Legacy flat structure
+        os.path.join(hr_system_root, "hr_recruitment_agents", "individual", f"{agent_name}.yaml"),  # Individual agents
+        os.path.join(hr_system_root, "hr_recruitment_agents", "team_coordinators", f"{agent_name}.yaml"),  # Team coordinators
     ]
 
     for path in search_paths:
-        if os.path.exists(path):
-            return path
+        abs_path = os.path.abspath(path)
+        if os.path.exists(abs_path):
+            return abs_path
 
     return None
 
@@ -47,7 +52,9 @@ def run_agent(agent_name):
     port = AGENT_PORTS[agent_name]
 
     # Paths - use our local configs directly
-    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "5_sk_a2a_custom_mcp_agent")
+    sk_server_dir = os.path.abspath(sk_server_dir)
     local_config = find_agent_config(agent_name)
 
     if not os.path.exists(f"{sk_server_dir}/sk_a2a_server.py"):
@@ -159,7 +166,9 @@ def start_agent_background(agent_name):
 
     port = AGENT_PORTS[agent_name]
     local_config = find_agent_config(agent_name)
-    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "5_sk_a2a_custom_mcp_agent")
+    sk_server_dir = os.path.abspath(sk_server_dir)
 
     if not local_config:
         print(f"❌ Config file not found for agent: {agent_name}")
@@ -189,25 +198,28 @@ def start_agent_background(agent_name):
         return None
 
 def run_all_agents():
-    """Run all agents simultaneously in background"""
+    """Run all INDIVIDUAL agents simultaneously in background (not coordinators)"""
     print(f"\n{'='*70}")
-    print(f" Starting ALL HR Recruitment Agents (Semantic Kernel) ")
+    print(f" Starting ALL Individual HR Agents (Semantic Kernel) ")
     print(f"{'='*70}")
-    
+    print(f" Note: This starts only individual agents (ports 5020-5030)")
+    print(f" Use start_coordinators.sh for team coordinators")
+    print(f"{'='*70}")
+
     # Clean ports first
     clean_agent_ports()
-    
+
     processes = {}
     failed_agents = []
-    
-    # Start all agents
-    for agent_name in AGENT_PORTS.keys():
+
+    # Start only individual agents
+    for agent_name in INDIVIDUAL_AGENT_PORTS.keys():
         proc = start_agent_background(agent_name)
         if proc:
             processes[agent_name] = proc
         else:
             failed_agents.append(agent_name)
-        
+
         # Add small delay between starts to avoid resource contention
         time.sleep(1)
     
@@ -218,9 +230,9 @@ def run_all_agents():
         print("\n❌ No agents started successfully")
         return False
     
-    print(f"\n✅ Started {len(processes)} agents successfully:")
+    print(f"\n✅ Started {len(processes)} individual agents successfully:")
     print("-" * 50)
-    for agent_name, port in AGENT_PORTS.items():
+    for agent_name, port in INDIVIDUAL_AGENT_PORTS.items():
         if agent_name in processes:
             print(f"{agent_name:<30} Port {port:<6} http://localhost:{port}")
     
@@ -265,14 +277,23 @@ def run_all_agents():
 def list_agents():
     """List all available agents"""
     print(f"\n{'='*70}")
-    print(f" Available HR Recruitment Agents (Semantic Kernel) ")
+    print(f" Available Individual HR Agents (Semantic Kernel) ")
     print(f"{'='*70}")
-    
-    for agent_name, port in AGENT_PORTS.items():
+
+    for agent_name, port in INDIVIDUAL_AGENT_PORTS.items():
         print(f"{agent_name:<30} Port {port:<6} http://localhost:{port}")
-    
-    print(f"\nUsage: python run_sk_agents.py <agent_name>")
+
+    print(f"\n{'='*70}")
+    print(f" Available Coordinator Agents (use start_coordinators.sh) ")
+    print(f"{'='*70}")
+
+    from hr_tools_config import COORDINATOR_AGENT_PORTS
+    for agent_name, port in COORDINATOR_AGENT_PORTS.items():
+        print(f"{agent_name:<30} Port {port:<6} http://localhost:{port}")
+
+    print(f"\nUsage: python run_sk_agents.py <individual_agent_name>")
     print(f"Example: python run_sk_agents.py job_requisition_agent")
+    print(f"For coordinators: use start_coordinators.sh")
 
 def main():
     parser = argparse.ArgumentParser(description="Run HR Recruitment Agents with Semantic Kernel")

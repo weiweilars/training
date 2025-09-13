@@ -167,9 +167,8 @@ HR_TOOLS = {
     }
 }
 
-# Agent ports
-AGENT_PORTS = {
-    # Individual Specialist Agents
+# Individual Specialist Agents (for start_agents.sh)
+INDIVIDUAL_AGENT_PORTS = {
     "job_requisition_agent": 5020,
     "sourcing_agent": 5021,
     "resume_screening_agent": 5022,
@@ -180,19 +179,20 @@ AGENT_PORTS = {
     "offer_management_agent": 5027,
     "analytics_reporting_agent": 5028,
     "compliance_agent": 5029,
-
-    # Summarization Agent (matches 6_sk pattern)
     "hr_summarization_agent": 5030,
+}
 
-    # Team Coordinator Agents (Level 2)
+# Team Coordinator Agents (for start_coordinators.sh)
+COORDINATOR_AGENT_PORTS = {
     "job_pipeline_team_agent": 5031,
     "acquisition_team_agent": 5032,
     "experience_team_agent": 5033,
     "closing_team_agent": 5034,
-
-    # Master Coordinator Agent (Level 3)
     "master_coordinator_agent": 5040
 }
+
+# All Agent ports (for backward compatibility)
+AGENT_PORTS = {**INDIVIDUAL_AGENT_PORTS, **COORDINATOR_AGENT_PORTS}
 
 def get_tools_for_agent(agent_name):
     """Get all tool names for a specific agent"""
