@@ -35,7 +35,10 @@ def start_tool(tool_name):
     print(f"🚀 Starting {tool_name} on port {port}...")
     
     # Use the new HTTP runner script in stateful mode (for agent compatibility)
-    cmd = [sys.executable, "run_hr_tool_http.py", tool_name]  # Default stateless mode
+    import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    runner_path = os.path.join(script_dir, "run_hr_tool_http.py")
+    cmd = [sys.executable, runner_path, tool_name]  # Default stateless mode
     subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
     time.sleep(2)

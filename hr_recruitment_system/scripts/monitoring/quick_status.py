@@ -7,6 +7,10 @@ Shows complete status of all components
 import requests
 import time
 from datetime import datetime
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tools'))
+from hr_tools_config import HR_TOOLS
 
 def check_agent(port, name):
     """Check if agent is online"""
@@ -43,39 +47,64 @@ def main():
     print()
 
     # Check MCP Tools
-    print("🛠️  MCP TOOLS (Ports 8051-8143)")
+    print("🛠️  MCP TOOLS (28 configured tools)")
     print("-" * 50)
 
-    tool_ranges = [
-        ("Job Management", range(8051, 8061)),
-        ("Sourcing", range(8061, 8071)),
-        ("Screening", range(8071, 8081)),
-        ("Communication", range(8081, 8091)),
-        ("Scheduling", range(8091, 8101)),
-        ("Assessment", range(8101, 8111)),
-        ("Background", range(8111, 8121)),
-        ("Analytics", range(8121, 8131)),
-        ("Offers", range(8131, 8141)),
-        ("Compliance", range(8141, 8144))
-    ]
+    # Group tools by category based on agent
+    tool_categories = {
+        "Job Requisition": [],
+        "Sourcing": [],
+        "Resume Screening": [],
+        "Communication": [],
+        "Interview Scheduling": [],
+        "Assessment": [],
+        "Background Verification": [],
+        "Offer Management": [],
+        "Analytics Reporting": [],
+        "Compliance": []
+    }
 
-    total_tools = 0
+    # Map agent names to category names
+    agent_to_category = {
+        "job_requisition_agent": "Job Requisition",
+        "sourcing_agent": "Sourcing",
+        "resume_screening_agent": "Resume Screening",
+        "communication_agent": "Communication",
+        "interview_scheduling_agent": "Interview Scheduling",
+        "assessment_agent": "Assessment",
+        "background_verification_agent": "Background Verification",
+        "offer_management_agent": "Offer Management",
+        "analytics_reporting_agent": "Analytics Reporting",
+        "compliance_agent": "Compliance"
+    }
+
+    # Group tools by their agent/category
+    for tool_name, config in HR_TOOLS.items():
+        agent = config.get("agent")
+        if agent in agent_to_category:
+            category = agent_to_category[agent]
+            tool_categories[category].append((tool_name, config["port"]))
+
+    total_tools = len(HR_TOOLS)
     online_tools = 0
 
-    for category, port_range in tool_ranges:
-        category_online = 0
-        category_total = 0
+    # Check each category
+    for category, tools in tool_categories.items():
+        if not tools:
+            continue
 
-        for port in port_range:
-            category_total += 1
-            total_tools += 1
-            is_online, _ = check_tool(port, f"tool_{port}")
+        category_online = 0
+        category_total = len(tools)
+
+        for tool_name, port in tools:
+            is_online, _ = check_tool(port, tool_name)
             if is_online:
                 category_online += 1
                 online_tools += 1
 
         status = "✅" if category_online == category_total else ("🟡" if category_online > 0 else "❌")
-        print(f"  {status} {category}: {category_online}/{category_total} online (ports {min(port_range)}-{max(port_range)})")
+        ports_str = f"ports {', '.join(str(p) for _, p in tools)}" if len(tools) <= 3 else f"{len(tools)} tools"
+        print(f"  {status} {category}: {category_online}/{category_total} online ({ports_str})")
 
     print(f"\n📊 Total MCP Tools: {online_tools}/{total_tools} online")
 

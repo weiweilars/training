@@ -103,130 +103,130 @@
 **Role**: Job Pipeline Team Leader
 **Responsibilities**: Job creation, approval workflow management
 ```
-JOB REQUISITION AGENT
+JOB REQUISITION AGENT (5020)
          |
     ┌────┼────┬────────────┐
     |    |    |            |
    JOB  JOB  JOB      COORDINATION
   CREATE WORKFLOW TEMPLATES   TOOLS
-  Tools  Tools   Tools      A2A Comms
+  (8051) (8052)  (8053)    A2A Comms
 ```
 
 ### **Sourcing Agent (Port 5021)**
-**Role**: Acquisition Team Leader  
+**Role**: Acquisition Team Leader
 **Responsibilities**: Candidate discovery and talent pool management
 ```
-SOURCING AGENT
+SOURCING AGENT (5021)
        |
    ┌───┼───┬──────────┬────────────┐
    |   |   |          |            |
  SOCIAL TALENT CANDIDATE COORDINATION
 SOURCING POOL  OUTREACH    TOOLS
- Tools  Tools   Tools    A2A Comms
+ (8061) (8062)  (8063)    A2A Comms
 ```
 
 ### **Resume Screening Agent (Port 5022)**
 **Role**: Acquisition Team Processor
 **Responsibilities**: Resume analysis and candidate matching
 ```
-RESUME SCREENING AGENT
+RESUME SCREENING AGENT (5022)
           |
     ┌─────┼─────┬───────────┐
     |     |     |           |
- DOCUMENT MATCHING REPORTING COORDINATION
-PROCESSING ENGINE  TOOLS    TOOLS
-  Tools   Tools   Tools   A2A Comms
+ DOCUMENT MATCHING    COORDINATION
+PROCESSING ENGINE       TOOLS
+  (8071)   (8072)     A2A Comms
 ```
 
 ### **Communication Agent (Port 5023)**
 **Role**: Experience Team Leader
 **Responsibilities**: Candidate communication and experience management
 ```
-COMMUNICATION AGENT
+COMMUNICATION AGENT (5023)
          |
     ┌────┼────┬─────────────┐
     |    |    |             |
-  EMAIL ENGAGEMENT TEMPLATE COORDINATION
- SERVICE TRACKING  MGMT     TOOLS
-  Tools   Tools    Tools   A2A Comms
+  EMAIL ENGAGEMENT     COORDINATION
+ SERVICE TRACKING         TOOLS
+  (8081)  (8082)       A2A Comms
 ```
 
 ### **Interview Scheduling Agent (Port 5024)**
 **Role**: Experience Team Coordinator
 **Responsibilities**: Interview coordination and calendar management
 ```
-INTERVIEW SCHEDULING AGENT
+INTERVIEW SCHEDULING AGENT (5024)
            |
     ┌──────┼──────┬──────────┐
     |      |      |          |
- CALENDAR BOOKING REMINDER COORDINATION
-INTEGRATION MGMT   SYSTEM    TOOLS
-  Tools    Tools   Tools   A2A Comms
+ CALENDAR INTERVIEW MEETING COORDINATION
+INTEGRATION WORKFLOW MGMT     TOOLS
+  (8091)   (8092)   (8093)  A2A Comms
 ```
 
 ### **Assessment Agent (Port 5025)**
 **Role**: Experience Team Evaluator
 **Responsibilities**: Skills testing and candidate evaluation
 ```
-ASSESSMENT AGENT
+ASSESSMENT AGENT (5025)
         |
    ┌────┼────┬──────────┐
    |    |    |          |
-  TEST SCORING REPORT COORDINATION
- ENGINE SYSTEM SYSTEM   TOOLS
- Tools  Tools  Tools   A2A Comms
+  TEST ASSESSMENT RESULTS COORDINATION
+ ENGINE LIBRARY ANALYSIS    TOOLS
+ (8101) (8102)   (8103)   A2A Comms
 ```
 
 ### **Background Verification Agent (Port 5026)**
 **Role**: Acquisition Team Validator
 **Responsibilities**: Background checks and verification
 ```
-BACKGROUND VERIFICATION AGENT
+BACKGROUND VERIFICATION AGENT (5026)
             |
     ┌───────┼───────┬───────────┐
     |       |       |           |
- VERIFICATION EMPLOYMENT EDUCATION COORDINATION
-   ENGINE     CHECK     CHECK     TOOLS
-   Tools      Tools     Tools   A2A Comms
+ VERIFICATION REFERENCE CREDENTIAL COORDINATION
+   ENGINE     CHECK   VALIDATION    TOOLS
+   (8141)    (8142)    (8143)    A2A Comms
 ```
 
 ### **Offer Management Agent (Port 5027)**
 **Role**: Closing Team Leader
 **Responsibilities**: Offer creation and negotiation management
 ```
-OFFER MANAGEMENT AGENT
+OFFER MANAGEMENT AGENT (5027)
          |
     ┌────┼────┬─────────────┐
     |    |    |             |
-  OFFER NEGOTIATION APPROVAL COORDINATION
- GENERATION MGMT   WORKFLOW   TOOLS
-  Tools     Tools   Tools    A2A Comms
+  OFFER NEGOTIATION CONTRACT COORDINATION
+ GENERATION  MGMT     MGMT      TOOLS
+  (8111)    (8112)   (8113)   A2A Comms
 ```
 
 ### **Analytics & Reporting Agent (Port 5028)**
 **Role**: Cross-Team Metrics Provider
 **Responsibilities**: Data analysis and reporting across all teams
 ```
-ANALYTICS & REPORTING AGENT
+ANALYTICS & REPORTING AGENT (5028)
             |
     ┌───────┼───────┬───────────┐
     |       |       |           |
   METRICS DASHBOARD PREDICTIVE COORDINATION
   ENGINE  GENERATOR ANALYTICS   TOOLS
-  Tools    Tools     Tools     A2A Comms
+  (8121)   (8122)    (8123)    A2A Comms
 ```
 
 ### **Compliance Agent (Port 5029)**
 **Role**: Cross-Team Legal Advisor
 **Responsibilities**: Regulatory compliance and legal oversight
 ```
-COMPLIANCE AGENT
+COMPLIANCE AGENT (5029)
         |
    ┌────┼────┬─────────────┐
    |    |    |             |
-  EEOC  AUDIT  DATA      COORDINATION
- CHECK  TRAIL PRIVACY      TOOLS
- Tools  Tools  Tools     A2A Comms
+REGULATORY DATA  AUDIT   COORDINATION
+ ENGINE  PRIVACY MGMT       TOOLS
+ (8131)  (8132) (8133)    A2A Comms
 ```
 
 ### **HR Summarization Agent (Port 5030)**
@@ -311,13 +311,15 @@ HR TEAM COORDINATOR AGENT
 
 ## 🔧 **Tool Level: MCP Servers and Individual Tools**
 
-### **Example: Job Requisition Agent Tools Breakdown**
+### **Complete MCP Tool Port Mappings**
+
+#### **Job Requisition Agent Tools (Ports 8051-8053)**
 ```
 JOB REQUISITION AGENT (Port 5020)
 │
 ├── 🔧 Job Creation MCP Server (Port 8051)
 │   ├── create_job_draft()
-│   ├── update_job_description() 
+│   ├── update_job_description()
 │   ├── add_job_responsibilities()
 │   ├── set_job_requirements()
 │   └── get_job_draft()
@@ -335,6 +337,85 @@ JOB REQUISITION AGENT (Port 5020)
     ├── create_job_from_template()
     ├── create_custom_template()
     └── update_template()
+```
+
+#### **Sourcing Agent Tools (Ports 8061-8063)**
+```
+SOURCING AGENT (Port 5021)
+│
+├── 🌐 Social Sourcing MCP Server (Port 8061)
+├── 👥 Talent Pool MCP Server (Port 8062)
+└── 📧 Outreach MCP Server (Port 8063)
+```
+
+#### **Resume Screening Agent Tools (Ports 8071-8072)**
+```
+RESUME SCREENING AGENT (Port 5022)
+│
+├── 📄 Document Processing MCP Server (Port 8071)
+└── 🎯 Matching Engine MCP Server (Port 8072)
+```
+
+#### **Communication Agent Tools (Ports 8081-8082)**
+```
+COMMUNICATION AGENT (Port 5023)
+│
+├── ✉️ Email Service MCP Server (Port 8081)
+└── 📊 Engagement Tracking MCP Server (Port 8082)
+```
+
+#### **Interview Scheduling Agent Tools (Ports 8091-8093)**
+```
+INTERVIEW SCHEDULING AGENT (Port 5024)
+│
+├── 📅 Calendar Integration MCP Server (Port 8091)
+├── 🔄 Interview Workflow MCP Server (Port 8092)
+└── 🤝 Meeting Management MCP Server (Port 8093)
+```
+
+#### **Assessment Agent Tools (Ports 8101-8103)**
+```
+ASSESSMENT AGENT (Port 5025)
+│
+├── 🧪 Test Engine MCP Server (Port 8101)
+├── 📚 Assessment Library MCP Server (Port 8102)
+└── 📈 Results Analysis MCP Server (Port 8103)
+```
+
+#### **Offer Management Agent Tools (Ports 8111-8113)**
+```
+OFFER MANAGEMENT AGENT (Port 5027)
+│
+├── 📝 Offer Generation MCP Server (Port 8111)
+├── 💬 Negotiation Management MCP Server (Port 8112)
+└── 📜 Contract Management MCP Server (Port 8113)
+```
+
+#### **Analytics Reporting Agent Tools (Ports 8121-8123)**
+```
+ANALYTICS REPORTING AGENT (Port 5028)
+│
+├── 📊 Metrics Engine MCP Server (Port 8121)
+├── 📈 Dashboard Generator MCP Server (Port 8122)
+└── 🔮 Predictive Analytics MCP Server (Port 8123)
+```
+
+#### **Compliance Agent Tools (Ports 8131-8133)**
+```
+COMPLIANCE AGENT (Port 5029)
+│
+├── ⚖️ Regulatory Engine MCP Server (Port 8131)
+├── 🔒 Data Privacy MCP Server (Port 8132)
+└── 📋 Audit Management MCP Server (Port 8133)
+```
+
+#### **Background Verification Agent Tools (Ports 8141-8143)**
+```
+BACKGROUND VERIFICATION AGENT (Port 5026)
+│
+├── 🔍 Verification Engine MCP Server (Port 8141)
+├── 📞 Reference Check MCP Server (Port 8142)
+└── 🎓 Credential Validation MCP Server (Port 8143)
 ```
 
 ---
@@ -407,12 +488,43 @@ This organizational chart provides the blueprint for a **3-Level Hierarchical A2
 - **Pure A2A Communication**: No MCP tools needed for coordination
 - **Scalable Design**: Easy to add new teams or specialists
 
-### **Port Allocation:**
-- **5020-5029**: Individual specialist agents
-- **5030**: HR Summarization Agent (support)
-- **5031-5034**: Team coordinator agents
-- **5040**: Master coordinator agent
-- **8051-8143**: MCP tool servers (by agent groupings)
+### **Port Allocation Summary:**
+
+#### **Agent Ports (5020-5040)**
+| Port | Agent Name | Type | Role |
+|------|------------|------|------|
+| 5020 | Job Requisition Agent | Individual | Job creation specialist |
+| 5021 | Sourcing Agent | Individual | Candidate discovery |
+| 5022 | Resume Screening Agent | Individual | Resume analysis |
+| 5023 | Communication Agent | Individual | Candidate communications |
+| 5024 | Interview Scheduling Agent | Individual | Interview coordination |
+| 5025 | Assessment Agent | Individual | Skills evaluation |
+| 5026 | Background Verification Agent | Individual | Background checks |
+| 5027 | Offer Management Agent | Individual | Offer handling |
+| 5028 | Analytics Reporting Agent | Individual | Cross-team metrics |
+| 5029 | Compliance Agent | Individual | Legal compliance |
+| 5030 | HR Summarization Agent | Support | Content generation |
+| 5031 | Job Pipeline Team Agent | Team Coordinator | Job workflow coordination |
+| 5032 | Acquisition Team Agent | Team Coordinator | Candidate acquisition |
+| 5033 | Experience Team Agent | Team Coordinator | Candidate experience |
+| 5034 | Closing Team Agent | Team Coordinator | Offer finalization |
+| 5040 | Master Coordinator Agent | Master | Overall orchestration |
+
+#### **MCP Tool Ports (8051-8143)**
+| Port Range | Agent | Tools | Count |
+|------------|-------|-------|-------|
+| 8051-8053 | Job Requisition | job-creation, job-workflow, job-templates | 3 |
+| 8061-8063 | Sourcing | social-sourcing, talent-pool, outreach | 3 |
+| 8071-8072 | Resume Screening | document-processing, matching-engine | 2 |
+| 8081-8082 | Communication | email-service, engagement-tracking | 2 |
+| 8091-8093 | Interview Scheduling | calendar-integration, interview-workflow, meeting-management | 3 |
+| 8101-8103 | Assessment | test-engine, assessment-library, results-analysis | 3 |
+| 8111-8113 | Offer Management | offer-generation, negotiation-management, contract-management | 3 |
+| 8121-8123 | Analytics Reporting | metrics-engine, dashboard-generator, predictive-analytics | 3 |
+| 8131-8133 | Compliance | regulatory-engine, data-privacy, audit-management | 3 |
+| 8141-8143 | Background Verification | verification-engine, reference-check, credential-validation | 3 |
+
+**Total**: 16 Agents (11 individual + 4 coordinators + 1 master) and 28 MCP Tools
 
 ### **Key Benefits:**
 1. **Clear Separation of Concerns**: Each level has distinct responsibilities
