@@ -36,10 +36,15 @@ STARTUP_ORDER = [
 
 def find_coordinator_config(coordinator_name):
     """Find coordinator config file in team_coordinators folder"""
-    config_path = f"../../hr_recruitment_agents/team_coordinators/{coordinator_name}.yaml"
+    # Get the script directory and work from there
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    hr_system_root = os.path.join(script_dir, '..', '..')
 
-    if os.path.exists(config_path):
-        return config_path
+    config_path = os.path.join(hr_system_root, "hr_recruitment_agents", "team_coordinators", f"{coordinator_name}.yaml")
+    abs_config_path = os.path.abspath(config_path)
+
+    if os.path.exists(abs_config_path):
+        return abs_config_path
 
     return None
 
@@ -54,7 +59,9 @@ def run_coordinator(coordinator_name):
     port = COORDINATOR_PORTS[coordinator_name]
 
     # Paths - use our local configs directly
-    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "5_sk_a2a_custom_mcp_agent")
+    sk_server_dir = os.path.abspath(sk_server_dir)
     local_config = find_coordinator_config(coordinator_name)
 
     if not os.path.exists(f"{sk_server_dir}/sk_a2a_server.py"):
@@ -147,7 +154,9 @@ def start_coordinator_background(coordinator_name):
 
     port = COORDINATOR_PORTS[coordinator_name]
     local_config = find_coordinator_config(coordinator_name)
-    sk_server_dir = "../../../a2a_training/5_sk_a2a_custom_mcp_agent"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "5_sk_a2a_custom_mcp_agent")
+    sk_server_dir = os.path.abspath(sk_server_dir)
 
     if not local_config:
         print(f"❌ Config file not found for coordinator: {coordinator_name}")
