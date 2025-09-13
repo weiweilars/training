@@ -36,9 +36,9 @@ cleanup_coordinators() {
     print_status "Cleaning up Team Coordinators and Master..."
 
     if command -v python3 &> /dev/null; then
-        python3 run_coordinators.py --cleanup
+        python3 scripts/agents/run_coordinators.py --cleanup
     elif command -v python &> /dev/null; then
-        python run_coordinators.py --cleanup
+        python scripts/agents/run_coordinators.py --cleanup
     else
         print_error "Python not found"
         return 1
@@ -52,9 +52,9 @@ cleanup_agents() {
     print_status "Cleaning up Individual Agents..."
 
     if command -v python3 &> /dev/null; then
-        python3 run_sk_agents.py --cleanup
+        python3 scripts/agents/run_sk_agents.py --cleanup
     elif command -v python &> /dev/null; then
-        python run_sk_agents.py --cleanup
+        python scripts/agents/run_sk_agents.py --cleanup
     else
         print_error "Python not found"
         return 1
@@ -68,9 +68,9 @@ cleanup_tools() {
     print_status "Cleaning up MCP Tools..."
 
     if command -v python3 &> /dev/null; then
-        python3 manage_hr_tools.py --cleanup
+        python3 scripts/tools/manage_hr_tools.py --cleanup
     elif command -v python &> /dev/null; then
-        python manage_hr_tools.py --cleanup
+        python scripts/tools/manage_hr_tools.py --cleanup
     else
         print_error "Python not found"
         return 1
