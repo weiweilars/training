@@ -1,0 +1,51 @@
+# Training Materials - Complete Requirements
+# This file includes all dependencies from all training modules
+
+# Web Framework & Server
+starlette>=0.27.0
+uvicorn[standard]>=0.24.0
+
+# Async HTTP Client
+aiohttp>=3.9.0
+httpx>=0.23.0
+anyio>=3.0.0
+
+# AI/ML Frameworks
+# Google ADK
+google-adk>=1.0.0
+
+# Semantic Kernel
+semantic-kernel>=0.9.0
+
+# OpenAI Support
+openai>=1.0.0
+
+# MCP Framework
+mcp>=0.1.0
+fastmcp>=0.1.0
+
+# Configuration & Environment
+python-dotenv>=1.0.0
+PyYAML>=6.0
+
+# Utilities
+uuid>=1.30
+typing-extensions>=4.8.0
+
+# Optional: For real weather API integration
+requests>=2.25.0
+
+# Optional: For advanced file processing
+pillow>=8.0.0
+
+# Testing & Development
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=21.0.0
+flake8>=3.8.0
+
+# Optional: Azure OpenAI Support (uncomment if needed)
+# azure-identity>=1.14.0
+
+# Optional: Google AI Support (uncomment if needed)
+# google-generativeai>=0.3.0
