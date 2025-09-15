@@ -30,7 +30,7 @@ Our system implements a **3-level hierarchical A2A architecture** as detailed in
 hr_recruitment_system/
 ├── 📋 **Main Access Files:**
 │   ├── README.md                          # This comprehensive guide
-│   ├── LOGGING_USAGE_GUIDE.md             # Logging instructions & examples
+│   ├── QUERY_TRACING_GUIDE.md             # Query tracing & debugging guide
 │   ├── HR_RECRUITMENT_ORG_CHART.md        # System architecture & organization
 │   ├── cleanup.sh                         # System cleanup & management
 │   ├── start_tools.sh                     # ./start_tools.sh --start-all
@@ -49,21 +49,22 @@ hr_recruitment_system/
 │   │   └── run_coordinators.py            # Team coordinators runner
 │   └── monitoring/                        # System monitoring
 │       ├── quick_status.py                # Complete system status
-│       └── capture_api_logs.py            # API call logging & monitoring
+│       └── advanced_query_tracer.py       # Advanced query tracing & monitoring
 ├──
 ├── 🧪 **tests/** - 4-Level testing framework
 │   ├── test_tools.py                      # Level 1: MCP tools testing
 │   ├── test_individual_agents.py          # Level 2: Individual agents testing
 │   ├── test_coordinators.py               # Level 3: Team coordinators testing
-│   ├── test_master.py                     # Level 4: Master integration testing
-│   └── test_with_detailed_logging.py      # Comprehensive logging tests
+│   └── test_master.py                     # Level 4: Master integration testing
 ├──
 ├── 🔧 **recruitment_tools_focused/**      # 28 MCP tool implementations
 ├── 👥 **hr_recruitment_agents/**          # Agent configurations (organized)
 │   ├── individual/                        # 11 individual specialist agents
 │   └── team_coordinators/                 # 4 coordinator agents (3 teams + master)
-└── 📊 **test_logs/**                      # Generated logs & reports
-    ├── api_logs_*/                        # API monitoring logs
+├── 📊 **traces/**                         # Query tracing files (auto-created)
+│   ├── trace_YYYYMMDD_HHMMSS.json         # Full trace data
+│   └── trace_YYYYMMDD_HHMMSS_summary.json # Execution summaries
+└── 📊 **test_logs/**                      # Generated test reports
     └── hr_test_*/                         # Comprehensive test reports
 ```
 
@@ -82,7 +83,7 @@ hr_recruitment_system/
 ./start_coordinators.sh --all
 
 # 4. Test complete system
-./run_tests.sh logging
+./run_tests.sh master
 
 # 5. Check system status
 ./status.sh
@@ -205,13 +206,16 @@ python tests/test_master.py --health-only
 python tests/test_master.py --scenario 2
 ```
 
-### **Complete Test Suite with Detailed Logging**
+### **Query Tracing and Debugging** ✅ NEW
 ```bash
-# Convenient wrapper
-./run_tests.sh logging                   # Run comprehensive test with detailed logging
+# Trace query execution with full A2A monitoring
+python advanced_query_tracer.py "Create a job posting for Senior Developer"
 
-# Direct script access
-python tests/test_with_detailed_logging.py
+# Interactive tracing mode
+python advanced_query_tracer.py --interactive
+
+# Test multi-team coordination
+python advanced_query_tracer.py "We need to hire 3 engineers urgently - create jobs, find candidates, and prepare offers"
 ```
 
 ## 🧹 System Cleanup
@@ -303,8 +307,8 @@ sleep 15  # Allow coordinators to connect
 # 5. Test complete integration
 ./run_tests.sh master
 
-# 6. Test with comprehensive logging
-./run_tests.sh logging
+# 6. Test with query tracing
+python advanced_query_tracer.py "Test complete system integration"
 
 # 7. Cleanup everything
 ./cleanup.sh all
@@ -400,7 +404,7 @@ ls ../a2a_training/5_sk_a2a_custom_mcp_agent/sk_a2a_server.py
 ### **📋 Main Documentation**
 - **[README.md](README.md)**: This comprehensive guide
 - **[HR_RECRUITMENT_ORG_CHART.md](HR_RECRUITMENT_ORG_CHART.md)**: Complete system architecture, team structures, and relationships
-- **[LOGGING_USAGE_GUIDE.md](LOGGING_USAGE_GUIDE.md)**: Detailed logging instructions and examples
+- **[QUERY_TRACING_GUIDE.md](QUERY_TRACING_GUIDE.md)**: Query tracing, debugging, and A2A monitoring guide
 
 ### **⚙️ Core Configuration**
 - **[scripts/tools/hr_tools_config.py](scripts/tools/hr_tools_config.py)**: Central configuration with all port mappings and tool definitions

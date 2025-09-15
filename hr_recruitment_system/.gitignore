@@ -1,6 +1,11 @@
 # Test logs directory
 test_logs/
 
+# Trace files directory
+traces/
+**/traces/
+trace_*.json
+
 # Python cache
 __pycache__/
 *.pyc
