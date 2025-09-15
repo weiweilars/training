@@ -92,10 +92,8 @@ curl -s http://localhost:5001/.well-known/agent-card.json | python -m json.tool
 ```
 
 ### 2. A2A Message Sending (Standard Format)
-
-#### Simple Manual Approach (All Platforms)
 ```bash
-# Step 1: Send weather query and manually copy the task ID from the response
+# Send weather query and manually copy the task ID from the response
 curl -X POST http://localhost:5001 \
   -H "Content-Type: application/json" \
   -d '{
@@ -121,59 +119,10 @@ curl -X POST http://localhost:5001 \
 #   }
 # }
 
-# Step 2: Manually copy the taskId value from the response above
-# For example: abc123-def456-...
-```
-
-#### Automated Approach (Linux/macOS with Bash)
-```bash
-# Capture response and extract task ID automatically
-RESPONSE=$(curl -s -X POST http://localhost:5001 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "test-1",
-    "method": "message/send",
-    "params": {
-      "message": {
-        "content": "What is the weather in Tokyo?"
-      },
-      "sessionId": "session-123"
-    }
-  }')
-
-echo "$RESPONSE" | python3 -m json.tool
-
-# Extract task ID (use python3 to avoid encoding issues)
-TASK_ID=$(echo "$RESPONSE" | python3 -c "import sys, json; print(json.load(sys.stdin)['result']['taskId'])")
-echo "Task ID: $TASK_ID"
-```
-
-#### Windows (PowerShell)
-```powershell
-# Send weather query using PowerShell
-$headers = @{ "Content-Type" = "application/json" }
-$body = @{
-    jsonrpc = "2.0"
-    id = "test-1"
-    method = "message/send"
-    params = @{
-        message = @{ content = "What is the weather in Tokyo?" }
-        sessionId = "session-123"
-    }
-} | ConvertTo-Json -Depth 10
-
-$response = Invoke-RestMethod -Uri "http://localhost:5001" -Method Post -Headers $headers -Body $body
-$response | ConvertTo-Json -Depth 10
-
-# Extract task ID
-$taskId = $response.result.taskId
-Write-Host "Task ID: $taskId"
+# Copy the taskId value from the response above for use in the next steps
 ```
 
 ### 3. Task Management
-
-#### Simple Manual Approach (All Platforms)
 ```bash
 # Replace YOUR_TASK_ID with the actual task ID you copied from step 2
 
@@ -200,73 +149,6 @@ curl -X POST http://localhost:5001 \
       "taskId": "YOUR_TASK_ID"
     }
   }'
-```
-
-#### Automated Approach (Linux/macOS with stored TASK_ID)
-```bash
-# Using the TASK_ID variable from the previous step
-curl -X POST http://localhost:5001 \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"jsonrpc\": \"2.0\",
-    \"id\": \"test-2\",
-    \"method\": \"tasks/get\",
-    \"params\": {
-      \"taskId\": \"$TASK_ID\"
-    }
-  }" | python3 -m json.tool
-
-# Cancel the task
-curl -X POST http://localhost:5001 \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"jsonrpc\": \"2.0\",
-    \"id\": \"test-3\",
-    \"method\": \"tasks/cancel\",
-    \"params\": {
-      \"taskId\": \"$TASK_ID\"
-    }
-  }" | python3 -m json.tool
-```
-
-#### Windows (PowerShell)
-```powershell
-# Get task status using the captured task ID
-$getTaskBody = @{
-    jsonrpc = "2.0"
-    id = "test-2"
-    method = "tasks/get"
-    params = @{
-        taskId = $taskId
-    }
-} | ConvertTo-Json -Depth 10
-
-Invoke-RestMethod -Uri "http://localhost:5001" -Method Post -Headers $headers -Body $getTaskBody | ConvertTo-Json -Depth 10
-
-# Cancel the task
-$cancelTaskBody = @{
-    jsonrpc = "2.0"
-    id = "test-3"
-    method = "tasks/cancel"
-    params = @{
-        taskId = $taskId
-    }
-} | ConvertTo-Json -Depth 10
-
-Invoke-RestMethod -Uri "http://localhost:5001" -Method Post -Headers $headers -Body $cancelTaskBody | ConvertTo-Json -Depth 10
-```
-
-#### Windows (Command Prompt)
-```batch
-REM Get task status (uses TASK_ID from previous command)
-curl -X POST http://localhost:5001 ^
-  -H "Content-Type: application/json" ^
-  -d "{\"jsonrpc\": \"2.0\", \"id\": \"test-2\", \"method\": \"tasks/get\", \"params\": {\"taskId\": \"%TASK_ID%\"}}" | python -m json.tool
-
-REM Cancel the task
-curl -X POST http://localhost:5001 ^
-  -H "Content-Type: application/json" ^
-  -d "{\"jsonrpc\": \"2.0\", \"id\": \"test-3\", \"method\": \"tasks/cancel\", \"params\": {\"taskId\": \"%TASK_ID%\"}}" | python -m json.tool
 ```
 
 ### 4. Legacy Format Support

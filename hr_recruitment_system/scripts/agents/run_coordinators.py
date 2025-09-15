@@ -110,9 +110,9 @@ def clean_coordinator_ports():
     if HAS_PSUTIL:
         # Use psutil for better process detection
         for coordinator_name, port in COORDINATOR_PORTS.items():
-            for proc in psutil.process_iter(['pid', 'name', 'connections']):
+            for proc in psutil.process_iter(['pid', 'name']):
                 try:
-                    connections = proc.info['connections'] or []
+                    connections = proc.connections()
                     for conn in connections:
                         if hasattr(conn, 'laddr') and conn.laddr and conn.laddr.port == port:
                             print(f"🧹 Killing process {proc.info['pid']} using port {port} ({coordinator_name})")

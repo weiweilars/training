@@ -99,13 +99,14 @@ def run_agent(agent_name):
 def clean_agent_ports():
     """Clean up any processes using agent ports"""
     cleaned_ports = []
-    
+
     if HAS_PSUTIL:
         # Use psutil for better process detection
         for agent_name, port in AGENT_PORTS.items():
-            for proc in psutil.process_iter(['pid', 'name', 'connections']):
+            for proc in psutil.process_iter(['pid', 'name']):
                 try:
-                    connections = proc.info['connections'] or []
+                    # Get connections separately since it's not a valid attr for process_iter
+                    connections = proc.connections()
                     for conn in connections:
                         if hasattr(conn, 'laddr') and conn.laddr and conn.laddr.port == port:
                             print(f"🧹 Killing process {proc.info['pid']} using port {port} ({agent_name})")
