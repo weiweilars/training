@@ -92,6 +92,8 @@ curl -s http://localhost:5001/.well-known/agent-card.json | python -m json.tool
 ```
 
 ### 2. A2A Message Sending (Standard Format)
+
+#### Linux
 ```bash
 # Send weather query using A2A message/send method and capture task ID
 RESPONSE=$(curl -s -X POST http://localhost:5001 \
@@ -115,19 +117,104 @@ TASK_ID=$(echo "$RESPONSE" | python -c "import sys, json; data = json.load(sys.s
 echo "Task ID: $TASK_ID"
 ```
 
+#### macOS
+```bash
+# Send weather query using A2A message/send method and capture task ID
+# Note: macOS may require python3 and proper encoding handling
+RESPONSE=$(curl -s -X POST http://localhost:5001 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "test-1",
+    "method": "message/send",
+    "params": {
+      "message": {
+        "content": "What is the weather in Tokyo?"
+      },
+      "sessionId": "session-123"
+    }
+  }')
+
+# Display formatted response (use python3 on macOS)
+echo "$RESPONSE" | python3 -m json.tool
+
+# Extract task ID - macOS version with better error handling
+TASK_ID=$(echo "$RESPONSE" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    print(data['result']['taskId'])
+except json.JSONDecodeError:
+    # If direct parsing fails, try saving to file first
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+        f.write(sys.stdin.read())
+    with open(f.name, 'r') as f:
+        data = json.load(f)
+    print(data['result']['taskId'])
+")
+echo "Task ID: $TASK_ID"
+```
+
+#### Windows (PowerShell)
+```powershell
+# Send weather query using A2A message/send method and capture task ID
+$headers = @{
+    "Content-Type" = "application/json"
+}
+
+$body = @{
+    jsonrpc = "2.0"
+    id = "test-1"
+    method = "message/send"
+    params = @{
+        message = @{
+            content = "What is the weather in Tokyo?"
+        }
+        sessionId = "session-123"
+    }
+} | ConvertTo-Json -Depth 10
+
+$response = Invoke-RestMethod -Uri "http://localhost:5001" -Method Post -Headers $headers -Body $body
+
+# Display formatted response
+$response | ConvertTo-Json -Depth 10
+
+# Extract task ID
+$taskId = $response.result.taskId
+Write-Host "Task ID: $taskId"
+```
+
+#### Windows (Command Prompt with curl)
+```batch
+REM Send weather query using curl on Windows
+curl -s -X POST http://localhost:5001 ^
+  -H "Content-Type: application/json" ^
+  -d "{\"jsonrpc\": \"2.0\", \"id\": \"test-1\", \"method\": \"message/send\", \"params\": {\"message\": {\"content\": \"What is the weather in Tokyo?\"}, \"sessionId\": \"session-123\"}}" > response.json
+
+REM Display formatted response
+type response.json | python -m json.tool
+
+REM Extract task ID (requires Python installed)
+for /f "delims=" %%i in ('type response.json ^| python -c "import sys, json; data = json.load(sys.stdin); print(data['result']['taskId'])"') do set TASK_ID=%%i
+echo Task ID: %TASK_ID%
+```
+
 ### 3. Task Management
+
+#### Linux / macOS
 ```bash
 # Get task status using the dynamically captured task ID
 curl -X POST http://localhost:5001 \
   -H "Content-Type: application/json" \
   -d "{
     \"jsonrpc\": \"2.0\",
-    \"id\": \"test-2\", 
+    \"id\": \"test-2\",
     \"method\": \"tasks/get\",
     \"params\": {
       \"taskId\": \"$TASK_ID\"
     }
-  }" | python -m json.tool
+  }" | python3 -m json.tool
 
 # Cancel the task using the dynamically captured task ID
 curl -X POST http://localhost:5001 \
@@ -135,11 +222,51 @@ curl -X POST http://localhost:5001 \
   -d "{
     \"jsonrpc\": \"2.0\",
     \"id\": \"test-3\",
-    \"method\": \"tasks/cancel\", 
+    \"method\": \"tasks/cancel\",
     \"params\": {
       \"taskId\": \"$TASK_ID\"
     }
-  }" | python -m json.tool
+  }" | python3 -m json.tool
+```
+
+#### Windows (PowerShell)
+```powershell
+# Get task status using the captured task ID
+$getTaskBody = @{
+    jsonrpc = "2.0"
+    id = "test-2"
+    method = "tasks/get"
+    params = @{
+        taskId = $taskId
+    }
+} | ConvertTo-Json -Depth 10
+
+Invoke-RestMethod -Uri "http://localhost:5001" -Method Post -Headers $headers -Body $getTaskBody | ConvertTo-Json -Depth 10
+
+# Cancel the task
+$cancelTaskBody = @{
+    jsonrpc = "2.0"
+    id = "test-3"
+    method = "tasks/cancel"
+    params = @{
+        taskId = $taskId
+    }
+} | ConvertTo-Json -Depth 10
+
+Invoke-RestMethod -Uri "http://localhost:5001" -Method Post -Headers $headers -Body $cancelTaskBody | ConvertTo-Json -Depth 10
+```
+
+#### Windows (Command Prompt)
+```batch
+REM Get task status (uses TASK_ID from previous command)
+curl -X POST http://localhost:5001 ^
+  -H "Content-Type: application/json" ^
+  -d "{\"jsonrpc\": \"2.0\", \"id\": \"test-2\", \"method\": \"tasks/get\", \"params\": {\"taskId\": \"%TASK_ID%\"}}" | python -m json.tool
+
+REM Cancel the task
+curl -X POST http://localhost:5001 ^
+  -H "Content-Type: application/json" ^
+  -d "{\"jsonrpc\": \"2.0\", \"id\": \"test-3\", \"method\": \"tasks/cancel\", \"params\": {\"taskId\": \"%TASK_ID%\"}}" | python -m json.tool
 ```
 
 ### 4. Legacy Format Support
