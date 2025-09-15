@@ -366,17 +366,25 @@ curl -X POST http://localhost:8072/mcp \
 # Check agent health
 curl http://localhost:5020/.well-known/agent-card.json
 
-# Send conversation to agent
-curl -X POST http://localhost:5020/conversations \
+# Send message to agent using JSON-RPC
+curl -X POST http://localhost:5020/ \
   -H "Content-Type: application/json" \
   -d '{
-    "messages": [{
-      "id": "msg-1",
-      "timestamp": "'$(date -Iseconds)'",
-      "role": "user",
-      "content": "Create a job posting for a Senior Software Engineer with 5+ years Python experience"
-    }]
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {
+        "id": "msg_'$(date +%s)'",
+        "timestamp": "'$(date -Iseconds)'",
+        "role": "user",
+        "content": "Create a job posting for a Senior Software Engineer with 5+ years Python experience"
+      }
+    },
+    "id": "req_'$(date +%s)'"
   }'
+
+# Alternative: Use the query tracer for better debugging
+python scripts/monitoring/advanced_query_tracer.py "Create a job posting for Senior Software Engineer" --master-url http://localhost:5020
 ```
 
 ## 🛠️ Setup Requirements

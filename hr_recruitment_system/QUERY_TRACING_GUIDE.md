@@ -57,25 +57,16 @@ pip install semantic-kernel aiohttp requests colorama websockets
 
 ### Step 3: Run Queries with Tracing
 
-#### Basic Query Logging
-```bash
-# Single query
-python query_master_agent.py "Create a job posting for a Senior Python Developer"
-
-# Interactive mode
-python query_master_agent.py --interactive
-```
-
-#### Advanced Tracing
+#### Advanced Query Tracing
 ```bash
 # Single query with full tracing
-python advanced_query_tracer.py "Create a job posting for a Senior Python Developer"
+python scripts/monitoring/advanced_query_tracer.py "Create a job posting for a Senior Python Developer"
 
 # Interactive mode with custom trace duration
-python advanced_query_tracer.py --interactive --trace-duration 60
+python scripts/monitoring/advanced_query_tracer.py --interactive --trace-duration 60
 
 # Save trace to specific file
-python advanced_query_tracer.py "Complex hiring workflow" --output my_trace.json
+python scripts/monitoring/advanced_query_tracer.py "Complex hiring workflow" --output my_trace.json
 ```
 
 ## 🎯 Sample Queries to Test Different Coordination Patterns
@@ -84,13 +75,13 @@ python advanced_query_tracer.py "Complex hiring workflow" --output my_trace.json
 
 #### Simple Job Creation (Job Pipeline Team)
 ```bash
-python advanced_query_tracer.py "Create a job posting for a Senior Python Developer in the Engineering department, remote location"
+python scripts/monitoring/advanced_query_tracer.py "Create a job posting for a Senior Python Developer in the Engineering department, remote location"
 ```
 **Expected Path**: Master → Job Pipeline Team → Job Requisition Agent → Tool Servers
 
 #### Basic Candidate Sourcing (Acquisition Team)
 ```bash
-python advanced_query_tracer.py "Find candidates for our Software Engineer position with 3+ years React experience"
+python scripts/monitoring/advanced_query_tracer.py "Find candidates for our Software Engineer position with 3+ years React experience"
 ```
 **Expected Path**: Master → Acquisition Team → Sourcing Agent → Tool Servers
 
@@ -98,7 +89,7 @@ python advanced_query_tracer.py "Find candidates for our Software Engineer posit
 
 #### Full Hiring Pipeline (All 3 Teams) ⭐
 ```bash
-python advanced_query_tracer.py "We need to urgently hire 3 Senior Software Engineers for our AI team. Please create job postings, find candidates, screen them, schedule interviews, conduct assessments, and prepare offers. We need them to start within 6 weeks."
+python scripts/monitoring/advanced_query_tracer.py "We need to urgently hire 3 Senior Software Engineers for our AI team. Please create job postings, find candidates, screen them, schedule interviews, conduct assessments, and prepare offers. We need them to start within 6 weeks."
 ```
 **Expected Teams**:
 - **Acquisition Team** (5032) → Job creation, sourcing, screening
@@ -107,7 +98,7 @@ python advanced_query_tracer.py "We need to urgently hire 3 Senior Software Engi
 
 #### Acquisition → Experience Workflow ⭐
 ```bash
-python advanced_query_tracer.py "I have 25 applications for our DevOps Engineer position. The acquisition team should screen all resumes and identify top 8 candidates. Then the experience team should schedule interviews for next week and prepare assessments."
+python scripts/monitoring/advanced_query_tracer.py "I have 25 applications for our DevOps Engineer position. The acquisition team should screen all resumes and identify top 8 candidates. Then the experience team should schedule interviews for next week and prepare assessments."
 ```
 **Expected Teams**:
 - **Acquisition Team** (5032) → Resume screening, candidate identification
@@ -115,7 +106,7 @@ python advanced_query_tracer.py "I have 25 applications for our DevOps Engineer 
 
 #### Experience → Closing Workflow ⭐
 ```bash
-python advanced_query_tracer.py "We completed interviews for the Marketing Manager position. The experience team needs to send assessment feedback to all 5 candidates and coordinate with the closing team to prepare competitive salary offers for the top 2 candidates, ensuring all compliance requirements are met."
+python scripts/monitoring/advanced_query_tracer.py "We completed interviews for the Marketing Manager position. The experience team needs to send assessment feedback to all 5 candidates and coordinate with the closing team to prepare competitive salary offers for the top 2 candidates, ensuring all compliance requirements are met."
 ```
 **Expected Teams**:
 - **Experience Team** (5033) → Assessment feedback, candidate communication
@@ -123,13 +114,13 @@ python advanced_query_tracer.py "We completed interviews for the Marketing Manag
 
 #### International Hiring (Complex Multi-Team) ⭐
 ```bash
-python advanced_query_tracer.py "We're hiring internationally for our London office. The acquisition team should source European candidates, the experience team should coordinate virtual interviews across time zones, and the closing team must ensure UK visa sponsorship compliance."
+python scripts/monitoring/advanced_query_tracer.py "We're hiring internationally for our London office. The acquisition team should source European candidates, the experience team should coordinate virtual interviews across time zones, and the closing team must ensure UK visa sponsorship compliance."
 ```
 **Expected Teams**: All teams working together with international complexity
 
 ### 📊 Status and Analytics Queries
 ```bash
-python advanced_query_tracer.py "What's the status of all my recent job postings and how many candidates have applied?"
+python scripts/monitoring/advanced_query_tracer.py "What's the status of all my recent job postings and how many candidates have applied?"
 ```
 **Expected Path**: Master → Experience Team → Analytics Agent → Tool Servers
 
@@ -213,24 +204,24 @@ curl http://localhost:5040/.well-known/agent-card.json
 
 ### Custom Master URL
 ```bash
-python advanced_query_tracer.py "query" --master-url http://localhost:5040
+python scripts/monitoring/advanced_query_tracer.py "query" --master-url http://localhost:5040
 ```
 
 ### Extended Tracing Duration
 ```bash
-python advanced_query_tracer.py "complex query" --trace-duration 120
+python scripts/monitoring/advanced_query_tracer.py "complex query" --trace-duration 120
 ```
 
 ### Automatic Trace Organization ✅ NEW
 ```bash
 # All traces are automatically saved to traces/ directory
-python advanced_query_tracer.py "query"  # Automatically saves to traces/trace_YYYYMMDD_HHMMSS.json
+python scripts/monitoring/advanced_query_tracer.py "query"  # Automatically saves to traces/trace_YYYYMMDD_HHMMSS.json
 
 # Custom output location (still within traces/)
-python advanced_query_tracer.py "query" --output traces/custom_trace.json
+python scripts/monitoring/advanced_query_tracer.py "query" --output traces/custom_trace.json
 
 # Manual timestamp naming
-python advanced_query_tracer.py "query" --output traces/$(date +%Y%m%d_%H%M%S).json
+python scripts/monitoring/advanced_query_tracer.py "query" --output traces/$(date +%Y%m%d_%H%M%S).json
 ```
 
 ## Sample Output Analysis
@@ -300,7 +291,7 @@ All trace files are automatically saved in the `traces/` directory:
 ### Scenario 1: Job Creation Not Working
 ```bash
 # Trace the creation process
-python advanced_query_tracer.py "Create a Software Engineer position"
+python scripts/monitoring/advanced_query_tracer.py "Create a Software Engineer position"
 
 # Look for:
 # - Did master coordinator receive the query?
@@ -312,7 +303,7 @@ python advanced_query_tracer.py "Create a Software Engineer position"
 ### Scenario 2: Slow Response Times
 ```bash
 # Run with extended monitoring
-python advanced_query_tracer.py "Complex hiring workflow" --trace-duration 90
+python scripts/monitoring/advanced_query_tracer.py "Complex hiring workflow" --trace-duration 90
 
 # Check summary for:
 # - Total execution time
@@ -324,7 +315,7 @@ python advanced_query_tracer.py "Complex hiring workflow" --trace-duration 90
 ### Scenario 3: Missing Agent Interactions
 ```bash
 # Use interactive mode to test step by step
-python advanced_query_tracer.py --interactive
+python scripts/monitoring/advanced_query_tracer.py --interactive
 
 # Try queries like:
 # "Test acquisition team"
