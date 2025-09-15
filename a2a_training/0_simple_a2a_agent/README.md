@@ -111,7 +111,7 @@ RESPONSE=$(curl -s -X POST http://localhost:5001 \
 echo "$RESPONSE" | python -m json.tool
 
 # Extract task ID from response for dynamic retrieval
-TASK_ID=$(echo "$RESPONSE" | python -c "import sys, json; print(json.load(sys.stdin)['result']['taskId'])")
+TASK_ID=$(echo "$RESPONSE" | python -c "import sys, json; data = json.load(sys.stdin); print(data['result']['taskId'])")
 echo "Task ID: $TASK_ID"
 ```
 
