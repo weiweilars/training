@@ -90,9 +90,9 @@ def cleanup():
         # Try to find and kill processes on tool ports
         try:
             import psutil
-            for proc in psutil.process_iter(['pid', 'connections']):
+            for proc in psutil.process_iter(['pid', 'name']):
                 try:
-                    connections = proc.info['connections'] or []
+                    connections = proc.connections()
                     for conn in connections:
                         if hasattr(conn, 'laddr') and conn.laddr and conn.laddr.port == port:
                             print(f"✓ Killed {tool_desc} (PID: {proc.info['pid']}) on port {port}")

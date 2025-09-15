@@ -3,12 +3,14 @@
 *.env
 .env.*
 
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
 env/
+**myenv/
 ENV/
 
 # IDE
