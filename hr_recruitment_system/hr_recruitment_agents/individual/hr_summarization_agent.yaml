@@ -27,7 +27,6 @@ agent:
 
   # LLM Configuration
   llm:
-    model: "gpt-3.5-turbo"
     system_prompt: |
       You are an expert HR recruitment text summarization and generation specialist. Your role is to:
 

@@ -36,7 +36,8 @@ class CustomA2AClient:
     async def initialize(self) -> Dict[str, Any]:
         """Initialize A2A agent session by fetching agent card"""
         try:
-            async with httpx.AsyncClient() as client:
+            # Increase timeout for slow agents
+            async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
                 # Fetch agent card to understand capabilities
                 card_response = await client.get(f"{self.agent_url}/.well-known/agent-card.json")
                 if card_response.status_code == 200:
@@ -65,7 +66,7 @@ class CustomA2AClient:
         """Send message to A2A agent"""
         if not session_id:
             session_id = self.session_id
-            
+
         payload = {
             "jsonrpc": "2.0",
             "method": "message/send",
@@ -77,22 +78,22 @@ class CustomA2AClient:
             },
             "id": str(uuid.uuid4())
         }
-        
+
         headers = {
             "Content-Type": "application/json"
         }
-        
+
         try:
-            async with httpx.AsyncClient() as client:
+            # Increase timeout to 60 seconds for slow A2A agents
+            async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
                 response = await client.post(self.agent_url, json=payload, headers=headers)
                 result = await self._parse_response(response)
-                
-                if result and "result" in result:
-                    return result["result"]
-                elif result and "error" in result:
+
+                # Return the full result instead of unwrapping here
+                if result and "error" in result:
                     raise Exception(f"A2A Agent Error: {result['error']}")
                 else:
-                    raise Exception(f"Unexpected response: {result}")
+                    return result
         except Exception as e:
             print(f"Error sending message to A2A agent {self.agent_url}: {e}")
             raise
@@ -112,23 +113,42 @@ def create_custom_agent_function(a2a_client: CustomA2AClient, capability_info: D
             else:
                 # Simple capability invocation
                 message = f"Please help with {capability_name}"
-            
+
             result = await a2a_client.send_message(message)
-            
-            # Extract response content
+
+            # Extract response content - now result is the full response
             if isinstance(result, dict):
-                if "result" in result and "message" in result["result"]:
-                    message_content = result["result"]["message"]
-                    if isinstance(message_content, dict) and "content" in message_content:
-                        return message_content["content"]
-                    elif isinstance(message_content, str):
-                        return message_content
-                elif "message" in result and "content" in result["message"]:
+                # Check for result.result.message pattern first
+                if "result" in result and isinstance(result["result"], dict):
+                    inner_result = result["result"]
+                    if "message" in inner_result:
+                        message_content = inner_result["message"]
+                        if isinstance(message_content, dict) and "content" in message_content:
+                            return message_content["content"]
+                        elif isinstance(message_content, str):
+                            return message_content
+                    # Also check if inner_result itself is the message
+                    elif "content" in inner_result:
+                        return inner_result["content"]
+                    # Or if inner_result is a string response
+                    elif isinstance(inner_result, str):
+                        return inner_result
+
+                # Check for direct message.content pattern
+                elif "message" in result and isinstance(result["message"], dict) and "content" in result["message"]:
                     return result["message"]["content"]
-            
+
+                # Check if result itself has content
+                elif "content" in result:
+                    return result["content"]
+
+            # If result is a string, return it directly
+            elif isinstance(result, str):
+                return result
+
             # Fallback to JSON representation
             return json.dumps(result, indent=2)
-            
+
         except Exception as e:
             return f"Error calling A2A agent {capability_name}: {str(e)}"
     

@@ -20,6 +20,7 @@ except ImportError:
 
 # Team Coordinator Agent Ports (different from individual agents)
 COORDINATOR_PORTS = {
+    "job_pipeline_team_agent": 5031,
     "acquisition_team_agent": 5032,
     "experience_team_agent": 5033,
     "closing_team_agent": 5034,
@@ -28,6 +29,7 @@ COORDINATOR_PORTS = {
 
 # Startup order - individual coordinators first, master last
 STARTUP_ORDER = [
+    "job_pipeline_team_agent",   # Job creation and publishing
     "acquisition_team_agent",    # Must start before master
     "experience_team_agent",     # Must start before master
     "closing_team_agent",        # Must start before master
@@ -58,9 +60,9 @@ def run_coordinator(coordinator_name):
 
     port = COORDINATOR_PORTS[coordinator_name]
 
-    # Paths - use our local configs directly
+    # Paths - use the A2A agent-to-agent server for coordinator communication
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "5_sk_a2a_custom_mcp_agent")
+    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "6_sk_a2a_agent_to_agent")
     sk_server_dir = os.path.abspath(sk_server_dir)
     local_config = find_coordinator_config(coordinator_name)
 
@@ -155,7 +157,7 @@ def start_coordinator_background(coordinator_name):
     port = COORDINATOR_PORTS[coordinator_name]
     local_config = find_coordinator_config(coordinator_name)
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "5_sk_a2a_custom_mcp_agent")
+    sk_server_dir = os.path.join(script_dir, "..", "..", "..", "a2a_training", "6_sk_a2a_agent_to_agent")
     sk_server_dir = os.path.abspath(sk_server_dir)
 
     if not local_config:

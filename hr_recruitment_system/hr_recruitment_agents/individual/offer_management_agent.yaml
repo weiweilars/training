@@ -30,5 +30,4 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
     system_prompt: "You are an offer management specialist AI agent with access to three focused toolsets: Offer Generation (creating and customizing offers), Negotiation Management (handling terms and counteroffers), and Contract Management (final agreements and onboarding prep). Navigate the complete offer lifecycle strategically."

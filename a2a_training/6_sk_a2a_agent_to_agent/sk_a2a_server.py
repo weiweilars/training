@@ -237,7 +237,7 @@ class A2ATeamAgent:
         # Always include a query parameter for passing user requests
         params = [{
             "name": "query",
-            "is_required": False,
+            "is_required": True,
             "type": "string",
             "default_value": None,
             "schema_data": {"type": "string"},
@@ -279,8 +279,11 @@ class A2ATeamAgent:
             
             logger.info(f"Discovered {len(capability_list)} capabilities from {url}")
             
-            # Create a plugin name
-            plugin_name = f"a2a_plugin_{url.replace('://', '_').replace('/', '_').replace(':', '_')}"
+            # Create a plugin name that matches the expected format
+            # Master coordinator expects: functions.a2a_plugin_http_localhost_5031-a2a_agent_1
+            # Convert http://localhost:5031 -> a2a_plugin_hash (max 64 chars for Azure OpenAI)
+            url_hash = hash(url) % 10000  # Create short hash
+            plugin_name = f"a2a_plugin_{url_hash}"
             
             # Create a dictionary to hold plugin functions
             plugin_functions = {}
@@ -289,51 +292,69 @@ class A2ATeamAgent:
             for capability_name in capability_list:
                 capability_data = custom_agentset.capabilities.get(capability_name, {})
                 capability_description = capability_data.get("description", f"A2A agent capability: {capability_name}")
-                
+
                 logger.info(f"Registering capability: {capability_name}")
-                
-                # Create kernel function for this capability
+
+                # Create kernel function for this capability (using MCP approach)
                 def create_kernel_func(name, desc, agentset, capability_info):
                     @kernel_function(
                         name=name,
                         description=desc
                     )
-                    async def kernel_func(query: str = None, **kwargs):
+                    async def kernel_func(**kwargs):
+                        """A2A agent function with dynamic parameters like MCP"""
                         try:
-                            # Use the query parameter if provided, otherwise construct from kwargs
-                            if query:
-                                message = query
+                            # Use query parameter if provided, otherwise construct from kwargs
+                            if "query" in kwargs:
+                                message = kwargs["query"]
                             elif kwargs:
                                 message = f"Please help with {name}. Parameters: {json.dumps(kwargs, indent=2)}"
                             else:
                                 message = f"Please help with {name}"
-                            
+
+                            # Send the message to the A2A agent
                             result = await agentset.client.send_message(message)
-                            
-                            # Extract content from A2A result
+
+                            # Extract content from A2A result - updated for new response format
                             if isinstance(result, dict):
-                                if "result" in result and "message" in result["result"]:
+                                # Check for result.result.result.message pattern (new format)
+                                if ("result" in result and isinstance(result["result"], dict) and
+                                    "result" in result["result"] and isinstance(result["result"]["result"], dict)):
+                                    inner_result = result["result"]["result"]
+                                    if "message" in inner_result:
+                                        message_content = inner_result["message"]
+                                        if isinstance(message_content, dict) and "content" in message_content:
+                                            return message_content["content"]
+                                        elif isinstance(message_content, str):
+                                            return message_content
+                                    elif "content" in inner_result:
+                                        return inner_result["content"]
+                                # Check for legacy result.result.message pattern
+                                elif "result" in result and "message" in result["result"]:
                                     message_content = result["result"]["message"]
                                     if isinstance(message_content, dict) and "content" in message_content:
                                         return message_content["content"]
                                     elif isinstance(message_content, str):
                                         return message_content
+                                # Check for direct result.message pattern
                                 elif "message" in result and "content" in result["message"]:
                                     return result["message"]["content"]
-                            
+
                             # Fallback to JSON representation
                             return json.dumps(result, indent=2)
                         except Exception as e:
                             return f"Error calling A2A agent {name}: {str(e)}"
-                    
-                    # Add parameter metadata to enable function calling
-                    kernel_func.__kernel_function_parameters__ = self._get_parameter_dicts_from_capability(capability_info)
+
                     return kernel_func
-                
-                kernel_func = create_kernel_func(capability_name, capability_description, custom_agentset, capability_data)
-                plugin_functions[capability_name] = kernel_func
-                
-                logger.info(f"Registered {capability_name} with query parameter for agent invocation")
+
+                # Use the actual capability name as the function name
+                # This maps directly to what the LLM sees in the agent card
+                function_name = capability_name
+
+                kernel_func = create_kernel_func(function_name, capability_description, custom_agentset, capability_data)
+                plugin_functions[function_name] = kernel_func
+
+                logger.info(f"Registered {function_name} with query parameter for agent invocation")
             
             # Create a plugin from all the functions
             plugin = KernelPlugin(
@@ -374,18 +395,42 @@ class A2ATeamAgent:
             chat_history.add_message(user_message)
             
             # Get response with full conversation context and function calling enabled
-            from semantic_kernel.connectors.ai.open_ai import AzureChatPromptExecutionSettings
-            
-            execution_settings = AzureChatPromptExecutionSettings()
+            from semantic_kernel.connectors.ai.open_ai import AzureChatPromptExecutionSettings, OpenAIChatPromptExecutionSettings
+
+            # Use appropriate execution settings based on the chat service
+            if isinstance(self._chat_service, OpenAIChatCompletion):
+                execution_settings = OpenAIChatPromptExecutionSettings()
+            else:
+                execution_settings = AzureChatPromptExecutionSettings()
+
             execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto(auto_invoke=True)
             execution_settings.parallel_tool_calls = True
             
             kernel_arguments = KernelArguments(settings=execution_settings)
             
-            response = await self._agent.get_response(
-                messages=chat_history,
-                arguments=kernel_arguments
-            )
+            # Add retry logic for rate limit errors
+            max_retries = 3
+            retry_delay = 1.0
+            response = None
+
+            for attempt in range(max_retries):
+                try:
+                    response = await self._agent.get_response(
+                        messages=chat_history,
+                        arguments=kernel_arguments
+                    )
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    if "rate_limit" in str(e).lower() or "429" in str(e):
+                        if attempt < max_retries - 1:
+                            wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
+                            logger.warning(f"Rate limit hit, waiting {wait_time}s before retry {attempt + 1}/{max_retries}")
+                            await asyncio.sleep(wait_time)
+                        else:
+                            logger.error(f"Rate limit exceeded after {max_retries} attempts")
+                            raise
+                    else:
+                        raise  # Re-raise non-rate-limit errors
             
             # Extract response text and add to history
             response_text = str(response) if response else "I apologize, but I couldn't generate a response."
@@ -968,14 +1013,46 @@ async def get_agent_card():
     # Get dynamic agent card info (description, instructions, greeting)
     dynamic_info = await agent.get_dynamic_agent_card_info()
     
-    # Build skills dynamically from discovered agents
+    # Build skills dynamically from registered kernel functions
     skills = []
-    for capability_name, capability_info in agent.available_agents.items():
-        skills.append({
-            "name": capability_name,
-            "description": capability_info.get("description", f"A2A agent capability: {capability_name}"),
-            "parameters": capability_info.get("parameters", {})
-        })
+
+    # Extract functions from kernel plugins to get proper parameter schemas
+    if agent.agent and hasattr(agent.agent, '_kernel') and hasattr(agent.agent._kernel, 'plugins'):
+        for plugin_name, plugin in agent.agent._kernel.plugins.items():
+            if hasattr(plugin, 'functions'):
+                for func_name, func in plugin.functions.items():
+                    if hasattr(func, '__kernel_function_parameters__'):
+                        # Convert kernel function parameters to agent card format
+                        parameters = {}
+                        for param in func.__kernel_function_parameters__:
+                            # Handle both dict format and KernelParameterMetadata
+                            if hasattr(param, 'name'):  # KernelParameterMetadata object
+                                parameters[param.name] = {
+                                    "type": param.type_ or "string",
+                                    "description": param.description or "",
+                                    "required": param.is_required
+                                }
+                            else:  # Dict format (fallback)
+                                parameters[param["name"]] = {
+                                    "type": param.get("type", "string"),
+                                    "description": param.get("description", ""),
+                                    "required": param.get("is_required", False)
+                                }
+
+                        skills.append({
+                            "name": func_name,
+                            "description": getattr(func, '__kernel_function_description__', f"A2A agent function: {func_name}"),
+                            "parameters": parameters
+                        })
+
+    # Fallback to available_agents if no kernel functions found
+    if not skills:
+        for capability_name, capability_info in agent.available_agents.items():
+            skills.append({
+                "name": capability_name,
+                "description": capability_info.get("description", f"A2A agent capability: {capability_name}"),
+                "parameters": capability_info.get("parameters", {})
+            })
     
     # Add general response capability
     skills.append({

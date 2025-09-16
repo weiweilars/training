@@ -69,10 +69,12 @@ class SystemStatus:
             "offer_management_agent": 5026,
             "compliance_agent": 5027,
             "communication_agent": 5028,
-            "analytics_reporting_agent": 5029
+            "analytics_reporting_agent": 5029,
+            "hr_summarization_agent": 5030
         }
 
         self.coordinator_ports = {
+            "job_pipeline_team_agent": 5031,
             "acquisition_team_agent": 5032,
             "experience_team_agent": 5033,
             "closing_team_agent": 5034,

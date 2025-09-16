@@ -153,7 +153,7 @@ class LogCapture:
 
         while self.monitoring and time.time() < end_time:
             await self._capture_agent_logs()
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)  # Increased from 2s to 5s to reduce API calls
 
     async def _capture_agent_logs(self):
         """Capture current agent logs (simplified version)"""
@@ -173,6 +173,9 @@ class LogCapture:
         async with aiohttp.ClientSession() as session:
             for agent_name, port in agent_ports.items():
                 try:
+                    # Add small delay to avoid rate limits
+                    await asyncio.sleep(0.2)  # 200ms delay between agent checks
+
                     # Check agent card endpoint instead of health
                     async with session.get(f"http://localhost:{port}/.well-known/agent-card.json",
                                          timeout=aiohttp.ClientTimeout(total=2)) as response:
@@ -458,6 +461,9 @@ def print_execution_summary(tracer: AdvancedQueryTracer):
     print(f"Total execution time: {Fore.YELLOW}{total_time:.2f}s{Style.RESET_ALL}")
     print(f"Total trace events: {Fore.YELLOW}{len(tracer.events)}{Style.RESET_ALL}")
 
+    # Show agent responses in detail
+    print_agent_responses(tracer)
+
     # Agent interaction sequence
     if tracer.agent_sequence:
         print(f"\n{Fore.CYAN}Agent Interaction Sequence:{Style.RESET_ALL}")
@@ -471,6 +477,165 @@ def print_execution_summary(tracer: AdvancedQueryTracer):
             print(f"  {i}. {tool_call['source']} → {tool_call['target']} at {tool_call['timestamp'][-8:]}")
         if len(tracer.tool_calls) > 5:
             print(f"  ... and {len(tracer.tool_calls) - 5} more")
+
+def print_agent_responses(tracer: AdvancedQueryTracer):
+    """Print detailed agent responses"""
+    responses = [e for e in tracer.events if e.event_type == "HTTP_RESPONSE" and e.response]
+
+    if not responses:
+        print(f"\n{Fore.YELLOW}⚠️  No agent responses captured{Style.RESET_ALL}")
+        return
+
+    print(f"\n{Back.GREEN}{Fore.WHITE}=== DETAILED AGENT RESPONSES ==={Style.RESET_ALL}")
+
+    for i, response_event in enumerate(responses, 1):
+        agent_name = format_agent_name(response_event.source)
+        port = extract_port_from_url(response_event.url) if response_event.url else "N/A"
+
+        print(f"\n{Fore.CYAN}🤖 AGENT {i}: {agent_name}{Style.RESET_ALL}")
+        print(f"   📍 Port: {port}")
+        print(f"   ⏱️  Response Time: {response_event.duration_ms:.1f}ms" if response_event.duration_ms else "   ⏱️  Response Time: N/A")
+        print(f"   📊 Status: {get_status_color(response_event.status_code)}{response_event.status_code}{Style.RESET_ALL}")
+
+        # Extract and display agent's actual response
+        agent_response = extract_agent_response_content(response_event.response)
+        if agent_response:
+            print(f"   💬 Response:")
+            # Wrap long responses
+            wrapped_response = wrap_response_text(agent_response, indent="      ")
+            print(f"{Fore.LIGHTGREEN_EX}{wrapped_response}{Style.RESET_ALL}")
+        else:
+            print(f"   💬 Response: {Fore.YELLOW}[No readable response content]{Style.RESET_ALL}")
+
+        # Show any errors
+        if response_event.error:
+            print(f"   ❌ Error: {Fore.RED}{response_event.error}{Style.RESET_ALL}")
+
+        if i < len(responses):
+            print(f"   {Fore.BLUE}{'─' * 80}{Style.RESET_ALL}")
+
+def format_agent_name(source: str) -> str:
+    """Format agent name for display"""
+    agent_names = {
+        "MASTER_COORDINATOR": "Master Coordinator Agent",
+        "JOB_REQUISITION": "Job Requisition Agent",
+        "SOURCING": "Sourcing Agent",
+        "RESUME_SCREENING": "Resume Screening Agent",
+        "COMMUNICATION": "Communication Agent",
+        "INTERVIEW_SCHEDULING": "Interview Scheduling Agent",
+        "ASSESSMENT": "Assessment Agent",
+        "BACKGROUND_VERIFICATION": "Background Verification Agent",
+        "OFFER_MANAGEMENT": "Offer Management Agent",
+        "ANALYTICS_REPORTING": "Analytics & Reporting Agent",
+        "COMPLIANCE": "Compliance Agent",
+        "ACQUISITION_TEAM": "Acquisition Team Coordinator",
+        "EXPERIENCE_TEAM": "Experience Team Coordinator",
+        "CLOSING_TEAM": "Closing Team Coordinator",
+        "JOB_PIPELINE_TEAM": "Job Pipeline Team Coordinator"
+    }
+    return agent_names.get(source, source.replace("_", " ").title())
+
+def extract_port_from_url(url: str) -> str:
+    """Extract port from URL"""
+    import re
+    match = re.search(r':(\d+)', url)
+    return match.group(1) if match else "N/A"
+
+def get_status_color(status_code: int) -> str:
+    """Get color for status code"""
+    if status_code == 200:
+        return Fore.GREEN
+    elif 400 <= status_code < 500:
+        return Fore.YELLOW
+    elif status_code >= 500:
+        return Fore.RED
+    else:
+        return Fore.WHITE
+
+def extract_agent_response_content(response_data: Any) -> str:
+    """Extract the actual agent response content from response data"""
+    if not response_data:
+        return ""
+
+    try:
+        # Handle different response formats
+        if isinstance(response_data, dict):
+            # JSON-RPC response format
+            if "result" in response_data:
+                result = response_data["result"]
+                if isinstance(result, dict):
+                    # Check for message content
+                    if "result" in result and "message" in result["result"]:
+                        return result["result"]["message"].get("content", "")
+                    elif "message" in result:
+                        if isinstance(result["message"], dict):
+                            return result["message"].get("content", "")
+                        else:
+                            return str(result["message"])
+                    elif "content" in result:
+                        return result["content"]
+                    else:
+                        return str(result)
+                else:
+                    return str(result)
+
+            # Direct message format
+            elif "message" in response_data:
+                msg = response_data["message"]
+                if isinstance(msg, dict):
+                    return msg.get("content", str(msg))
+                else:
+                    return str(msg)
+
+            # Agent card format
+            elif "name" in response_data and "description" in response_data:
+                return f"Agent: {response_data['name']} - {response_data['description']}"
+
+            # Generic dict - try to find content
+            else:
+                for key in ["content", "response", "text", "data"]:
+                    if key in response_data:
+                        return str(response_data[key])
+                return str(response_data)
+
+        # String response
+        elif isinstance(response_data, str):
+            return response_data
+
+        # Other types
+        else:
+            return str(response_data)
+
+    except Exception as e:
+        return f"[Error extracting response: {e}]"
+
+def wrap_response_text(text: str, indent: str = "", max_width: int = 100) -> str:
+    """Wrap long text for better readability"""
+    if not text:
+        return f"{indent}[Empty response]"
+
+    # Clean up the text
+    text = text.strip()
+    if len(text) <= max_width:
+        return f"{indent}{text}"
+
+    # Split into lines and wrap
+    lines = []
+    words = text.split()
+    current_line = ""
+
+    for word in words:
+        if len(current_line + " " + word) <= max_width:
+            current_line += (" " if current_line else "") + word
+        else:
+            if current_line:
+                lines.append(f"{indent}{current_line}")
+            current_line = word
+
+    if current_line:
+        lines.append(f"{indent}{current_line}")
+
+    return "\n".join(lines)
 
     # Event type breakdown
     event_types = {}

@@ -80,7 +80,6 @@ agent:
     default_port: 5040
     host: "0.0.0.0"
     
-  # LLM Configuration  
+  # LLM Configuration
   llm:
-    model: "gemini-1.5-flash-latest"
     system_prompt: "You are a master HR recruitment coordinator managing four specialized team agents through A2A communication. You orchestrate Job Pipeline Team Agent (5031), Acquisition Team Agent (5032), Experience Team Agent (5033), and Closing Team Agent (5034). Each team agent coordinates their own sub-agents. Route requests to appropriate team agents: job creation to Job Pipeline Team, candidate sourcing to Acquisition Team, candidate interactions to Experience Team, and offer management to Closing Team. Manage parallel workflows and cross-team coordination."

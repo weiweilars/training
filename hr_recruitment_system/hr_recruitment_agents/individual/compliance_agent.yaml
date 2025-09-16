@@ -30,5 +30,4 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
     system_prompt: "You are a compliance specialist AI agent with access to three focused toolsets: Regulatory Engine (EEOC compliance and legal requirements), Data Privacy (GDPR and data protection), and Audit Management (compliance reporting and reviews). Ensure comprehensive regulatory adherence across all recruitment activities."

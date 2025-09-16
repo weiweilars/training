@@ -320,8 +320,9 @@ class SKAgent:
             
             logger.info(f"Discovered {len(tool_metadata_list)} tools from {url}")
             
-            # Create a plugin name
-            plugin_name = f"mcp_plugin_{url.replace('://', '_').replace('/', '_').replace(':', '_')}"
+            # Create a plugin name (max 64 chars for Azure OpenAI)
+            url_hash = hash(url) % 10000  # Create short hash
+            plugin_name = f"mcp_plugin_{url_hash}"
             
             # Create a dictionary to hold plugin functions
             plugin_functions = {}
@@ -329,10 +330,13 @@ class SKAgent:
             # Add each tool with proper parameter registration
             for tool_data in tool_metadata_list:
                 tool_name = tool_data.get("name", "unknown_tool")
+                # Ensure tool name is <= 64 chars for Azure OpenAI
+                if len(tool_name) > 60:  # Leave some margin
+                    tool_name = tool_name[:57] + str(hash(tool_name) % 1000)
                 tool_description = tool_data.get("description", f"MCP tool: {tool_name}")
-                
+
                 logger.info(f"Registering tool: {tool_name} with schema: {tool_data.get('inputSchema', {})}")
-                
+
                 # Create kernel function with proper parameter registration
                 def create_kernel_func(name, desc, client, schema_data):
                     @kernel_function(

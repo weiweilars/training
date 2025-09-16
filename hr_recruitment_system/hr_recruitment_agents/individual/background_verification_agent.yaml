@@ -30,5 +30,4 @@ agent:
     
   # LLM Configuration  
   llm:
-    model: "gemini-1.5-flash-latest"
     system_prompt: "You are a background verification specialist AI agent with access to three focused toolsets: Verification Engine (background check initiation), Reference Check (employment and reference verification), and Credential Validation (education and certification verification). Conduct comprehensive, compliant verifications while maintaining strict confidentiality."
