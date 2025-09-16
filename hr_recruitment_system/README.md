@@ -387,6 +387,43 @@ curl -X POST http://localhost:5020/ \
 python scripts/monitoring/advanced_query_tracer.py "Create a job posting for Senior Software Engineer" --master-url http://localhost:5020
 ```
 
+## 🔧 Debugging Tools
+
+### **Port Consistency Checker**
+Check for port conflicts and verify system configuration:
+```bash
+# Check all port configurations and running services
+python scripts/debug/check_port_consistency.py
+```
+
+This tool will:
+- ✅ Verify which services are actually running
+- ✅ Analyze configuration files for port references
+- ✅ Check for port conflicts and inconsistencies
+- ✅ Provide recommended port mapping
+
+### **Query Tracer**
+Advanced tracing for A2A communication:
+```bash
+# Trace a query through the entire system
+python scripts/monitoring/advanced_query_tracer.py "Your query here"
+
+# Interactive mode
+python scripts/monitoring/advanced_query_tracer.py --interactive
+
+# Custom trace duration
+python scripts/monitoring/advanced_query_tracer.py --trace-duration 60 "complex query"
+```
+
+### **Quick Status Check**
+```bash
+# Check system status
+./status.sh
+
+# Or use the Python version
+python scripts/monitoring/quick_status.py
+```
+
 ## 🛠️ Setup Requirements
 
 ### **Prerequisites**
