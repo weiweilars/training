@@ -30,7 +30,6 @@ Our system implements a **3-level hierarchical A2A architecture** as detailed in
 hr_recruitment_system/
 ├── 📋 **Main Access Files:**
 │   ├── README.md                          # This comprehensive guide
-│   ├── QUERY_TRACING_GUIDE.md             # Query tracing & debugging guide
 │   ├── HR_RECRUITMENT_ORG_CHART.md        # System architecture & organization
 │   ├── cleanup.sh                         # System cleanup & management
 │   ├── start_tools.sh                     # ./start_tools.sh --start-all
@@ -48,8 +47,7 @@ hr_recruitment_system/
 │   │   ├── run_sk_agents.py               # Individual agents runner
 │   │   └── run_coordinators.py            # Team coordinators runner
 │   └── monitoring/                        # System monitoring
-│       ├── quick_status.py                # Complete system status
-│       └── advanced_query_tracer.py       # Advanced query tracing & monitoring
+│       └── quick_status.py                # Complete system status
 ├──
 ├── 🧪 **tests/** - 4-Level testing framework
 │   ├── test_tools.py                      # Level 1: MCP tools testing
@@ -61,9 +59,6 @@ hr_recruitment_system/
 ├── 👥 **hr_recruitment_agents/**          # Agent configurations (organized)
 │   ├── individual/                        # 11 individual specialist agents
 │   └── team_coordinators/                 # 4 coordinator agents (3 teams + master)
-├── 📊 **traces/**                         # Query tracing files (auto-created)
-│   ├── trace_YYYYMMDD_HHMMSS.json         # Full trace data
-│   └── trace_YYYYMMDD_HHMMSS_summary.json # Execution summaries
 └── 📊 **test_logs/**                      # Generated test reports
     └── hr_test_*/                         # Comprehensive test reports
 ```
@@ -206,17 +201,6 @@ python tests/test_master.py --health-only
 python tests/test_master.py --scenario 2
 ```
 
-### **Query Tracing and Debugging** ✅ NEW
-```bash
-# Trace query execution with full A2A monitoring
-python advanced_query_tracer.py "Create a job posting for Senior Developer"
-
-# Interactive tracing mode
-python advanced_query_tracer.py --interactive
-
-# Test multi-team coordination
-python advanced_query_tracer.py "We need to hire 3 engineers urgently - create jobs, find candidates, and prepare offers"
-```
 
 ## 🧹 System Cleanup
 
@@ -307,10 +291,7 @@ sleep 15  # Allow coordinators to connect
 # 5. Test complete integration
 ./run_tests.sh master
 
-# 6. Test with query tracing
-python advanced_query_tracer.py "Test complete system integration"
-
-# 7. Cleanup everything
+# 6. Cleanup everything
 ./cleanup.sh all
 ```
 
@@ -383,8 +364,6 @@ curl -X POST http://localhost:5020/ \
     "id": "req_'$(date +%s)'"
   }'
 
-# Alternative: Use the query tracer for better debugging
-python scripts/monitoring/advanced_query_tracer.py "Create a job posting for Senior Software Engineer" --master-url http://localhost:5020
 ```
 
 ## 🔧 Debugging Tools
@@ -401,19 +380,6 @@ This tool will:
 - ✅ Analyze configuration files for port references
 - ✅ Check for port conflicts and inconsistencies
 - ✅ Provide recommended port mapping
-
-### **Query Tracer**
-Advanced tracing for A2A communication:
-```bash
-# Trace a query through the entire system
-python scripts/monitoring/advanced_query_tracer.py "Your query here"
-
-# Interactive mode
-python scripts/monitoring/advanced_query_tracer.py --interactive
-
-# Custom trace duration
-python scripts/monitoring/advanced_query_tracer.py --trace-duration 60 "complex query"
-```
 
 ### **Quick Status Check**
 ```bash
@@ -449,7 +415,7 @@ ls ../a2a_training/5_sk_a2a_custom_mcp_agent/sk_a2a_server.py
 ### **📋 Main Documentation**
 - **[README.md](README.md)**: This comprehensive guide
 - **[HR_RECRUITMENT_ORG_CHART.md](HR_RECRUITMENT_ORG_CHART.md)**: Complete system architecture, team structures, and relationships
-- **[QUERY_TRACING_GUIDE.md](QUERY_TRACING_GUIDE.md)**: Query tracing, debugging, and A2A monitoring guide
+- **[MASTER_AGENT_QUERY_EXAMPLES.md](MASTER_AGENT_QUERY_EXAMPLES.md)**: Example queries for the master coordinator agent
 
 ### **⚙️ Core Configuration**
 - **[scripts/tools/hr_tools_config.py](scripts/tools/hr_tools_config.py)**: Central configuration with all port mappings and tool definitions

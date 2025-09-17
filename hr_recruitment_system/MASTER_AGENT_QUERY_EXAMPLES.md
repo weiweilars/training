@@ -351,18 +351,6 @@ curl -X POST http://localhost:5040/ \
   }'
 ```
 
-### Using the Query Tracer (Recommended)
-```bash
-# Direct query with full tracing
-python scripts/monitoring/advanced_query_tracer.py "YOUR_QUERY_HERE"
-
-# Interactive mode for testing multiple queries
-python scripts/monitoring/advanced_query_tracer.py --interactive
-
-# Extended trace for complex queries
-python scripts/monitoring/advanced_query_tracer.py --trace-duration 60 "Complex multi-team query"
-```
-
 ### Expected Response Structure
 - Master acknowledges query
 - Delegates to appropriate team coordinator(s)
