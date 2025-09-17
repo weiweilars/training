@@ -4,7 +4,7 @@ This guide shows you how to use the **fixed and enhanced** query tracing scripts
 
 ## ✅ Recent Fixes Applied
 
-Both query scripts have been **fixed and enhanced**:
+The query tracing script has been **fixed and enhanced**:
 - ✅ **JSON-RPC Method Fixed**: Changed from incorrect `"process_message"` to correct `"message/send"`
 - ✅ **Enhanced Readability**: Full response content display (800 chars vs 100)
 - ✅ **Better Formatting**: Clear `✅ Main Query Response:` labels for important results
@@ -18,13 +18,10 @@ The HR recruitment system has multiple layers of agents working in **Agent-to-Ag
 - **Master Coordinator** (port 5040): Orchestrates everything with intelligent delegation
 - **Tool Servers** (ports 8051-8143): 28 MCP tools for specialized HR operations
 
-## Scripts Available
+## Script Available
 
-### 1. `query_master_agent.py` - Basic Query Client ✅ FIXED
-Simple, fast script for sending queries and capturing responses with colored logging.
-
-### 2. `advanced_query_tracer.py` - Full System Tracer ✅ FIXED & ENHANCED
-Advanced script that captures all HTTP traffic, agent calls, tool invocations, and multi-team coordination patterns.
+### `advanced_query_tracer.py` - Full System Tracer ✅ FIXED & ENHANCED
+Advanced script that captures all HTTP traffic, agent calls, tool invocations, and multi-team coordination patterns with colored logging.
 
 ## Quick Start
 
