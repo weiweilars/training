@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mcp-deployment:
+    build: .
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - ENVIRONMENT=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=4
+      - AUTH_ENABLED=${AUTH_ENABLED:-false}
+      - AUTH_TYPE=${AUTH_TYPE:-bearer}
+      - SECRET_KEY=${SECRET_KEY:-change-me}
+      - VALID_BEARER_TOKENS=${VALID_BEARER_TOKENS:-}
+      - VALID_API_KEYS=${VALID_API_KEYS:-}
+      - MONITORING_ENABLED=true
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - ./logs:/app/logs
+      - ./tools:/app/tools
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Optional: Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:

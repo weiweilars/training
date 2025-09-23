@@ -19,7 +19,7 @@ agent:
   # Default MCP Tools
   tools:
     default_urls:
-      - "http://localhost:8002/mcp"  # Calculator MCP server (port 8002)
+      - "http://localhost:8004/mcp"  # Calculator MCP server (deployed via mcp_deployment)
     
   # Server Configuration
   server:

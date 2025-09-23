@@ -1,0 +1,39 @@
+# Core MCP dependencies
+fastmcp>=0.1.0
+
+# Web framework dependencies
+starlette>=0.37.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# Authentication
+PyJWT>=2.8.0
+bcrypt>=4.1.0
+
+# JSON handling
+orjson>=3.9.0
+
+# Monitoring and metrics
+prometheus-client>=0.20.0
+
+# Environment management
+python-dotenv>=1.0.0
+
+# Async file handling
+aiofiles>=23.0.0
+
+# HTTP client for testing
+httpx>=0.25.0
+requests>=2.31.0
+
+# Testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Development dependencies
+black>=23.0.0
+isort>=5.12.0
+mypy>=1.5.0
+
+# Optional: Scientific computing for advanced math tools
+numpy>=1.24.0

@@ -1,0 +1,152 @@
+# Sample Agent Card Definitions for Testing
+
+---
+# Job Requisition Agent
+name: Job Requisition Agent
+description: Manages job requisitions, creates job postings, and handles position requirements
+capabilities:
+  - Create and manage job requisitions
+  - Define job requirements and qualifications
+  - Publish job postings
+  - Track requisition status
+required_tools:
+  - create_job_requisition
+tool_categories:
+  - hr
+  - recruitment
+  - requisition
+keywords:
+  - job
+  - requisition
+  - position
+  - posting
+  - requirement
+  - vacancy
+metadata:
+  team: recruitment
+  priority: high
+
+---
+# Resume Screening Agent
+name: Resume Screening Agent
+description: Screens and evaluates candidate resumes against job requirements
+capabilities:
+  - Parse and analyze resumes
+  - Match candidates to job requirements
+  - Score and rank candidates
+  - Extract key qualifications
+required_tools:
+  - screen_resume
+tool_categories:
+  - hr
+  - recruitment
+  - screening
+keywords:
+  - resume
+  - cv
+  - screening
+  - evaluation
+  - candidate
+  - qualification
+  - skills
+metadata:
+  team: recruitment
+  ai_powered: true
+
+---
+# Interview Scheduling Agent
+name: Interview Scheduling Agent
+description: Coordinates and schedules interviews between candidates and interviewers
+capabilities:
+  - Schedule interviews
+  - Coordinate calendars
+  - Send interview invitations
+  - Handle rescheduling
+  - Send reminders
+required_tools:
+  - schedule_interview
+  - send_notification
+  - create_calendar_event
+tool_categories:
+  - hr
+  - recruitment
+  - scheduling
+  - communication
+keywords:
+  - interview
+  - schedule
+  - calendar
+  - meeting
+  - coordination
+  - invitation
+  - reminder
+metadata:
+  team: recruitment
+  integrations:
+    - calendar
+    - email
+
+---
+# Communication Agent
+name: Communication Agent
+description: Handles all recruitment-related communications with candidates and team members
+capabilities:
+  - Send email notifications
+  - Send SMS messages
+  - Create and manage templates
+  - Track communication history
+required_tools:
+  - send_email
+  - send_sms
+  - send_notification
+tool_categories:
+  - communication
+  - hr
+  - notification
+keywords:
+  - email
+  - sms
+  - notification
+  - message
+  - communication
+  - template
+metadata:
+  team: communication
+  channels:
+    - email
+    - sms
+    - in-app
+
+---
+# Analytics and Reporting Agent
+name: Analytics and Reporting Agent
+description: Generates reports and analyzes recruitment metrics and performance
+capabilities:
+  - Generate recruitment reports
+  - Analyze hiring metrics
+  - Track KPIs
+  - Provide insights
+  - Create dashboards
+required_tools:
+  - generate_report
+  - analyze_metrics
+tool_categories:
+  - analytics
+  - reporting
+  - hr
+keywords:
+  - report
+  - analytics
+  - metrics
+  - kpi
+  - performance
+  - data
+  - insights
+  - dashboard
+metadata:
+  team: analytics
+  report_types:
+    - recruitment_funnel
+    - time_to_hire
+    - source_effectiveness
+    - candidate_pipeline

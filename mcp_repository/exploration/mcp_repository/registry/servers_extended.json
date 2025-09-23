@@ -1,0 +1,99 @@
+{
+  "hr_server": {
+    "name": "HR Management Server",
+    "description": "HR tools for recruitment and management",
+    "version": "2.1.0",
+    "tools": [
+      {
+        "name": "create_job_posting",
+        "description": "Create a new job posting",
+        "parameters": {},
+        "categories": [
+          "hr",
+          "recruitment"
+        ],
+        "keywords": [],
+        "tool_id": "hr_001",
+        "unique_id": "hr_001",
+        "server_id": "hr_server"
+      },
+      {
+        "name": "screen_candidate",
+        "description": "Screen candidate applications",
+        "parameters": {},
+        "categories": [
+          "hr",
+          "screening"
+        ],
+        "keywords": [],
+        "tool_id": null,
+        "unique_id": "tool_319826bf98c2",
+        "server_id": "hr_server"
+      },
+      {
+        "name": "schedule_interview",
+        "description": "Schedule interviews with candidates",
+        "parameters": {},
+        "categories": [
+          "hr",
+          "scheduling"
+        ],
+        "keywords": [],
+        "tool_id": "hr_003",
+        "unique_id": "hr_003",
+        "server_id": "hr_server"
+      }
+    ],
+    "server_type": "http",
+    "address": "http://hr-tools.company.com:8080",
+    "endpoint": "http://hr-tools.company.com:8080",
+    "host": "localhost",
+    "port": null,
+    "protocol": "http",
+    "metadata": {},
+    "created_at": "2025-09-17T14:34:53.741249",
+    "last_discovered": null
+  },
+  "analytics_api": {
+    "name": "Analytics API",
+    "description": "Analytics and reporting services",
+    "version": "1.5.2",
+    "tools": [
+      {
+        "name": "generate_report",
+        "description": "Generate analytics reports",
+        "parameters": {},
+        "categories": [
+          "analytics",
+          "reporting"
+        ],
+        "keywords": [],
+        "tool_id": "analytics_report_v2",
+        "unique_id": "analytics_report_v2",
+        "server_id": "analytics_api"
+      },
+      {
+        "name": "analyze_metrics",
+        "description": "Analyze recruitment metrics",
+        "parameters": {},
+        "categories": [
+          "analytics",
+          "metrics"
+        ],
+        "keywords": [],
+        "tool_id": null,
+        "unique_id": "tool_77544b70a474",
+        "server_id": "analytics_api"
+      }
+    ],
+    "server_type": "http",
+    "address": "http://analytics.internal:8100",
+    "endpoint": "http://analytics.internal:8100",
+    "host": "localhost",
+    "port": null,
+    "protocol": "http",
+    "metadata": {},
+    "created_at": "2025-09-17T14:34:53.741270",
+    "last_discovered": null
+  }
+}

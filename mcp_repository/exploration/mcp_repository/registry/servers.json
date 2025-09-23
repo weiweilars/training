@@ -1,0 +1,175 @@
+{
+  "hr_recruitment": {
+    "name": "HR Recruitment Tools",
+    "description": "MCP server for HR recruitment operations",
+    "version": "1.0.0",
+    "tools": [
+      {
+        "name": "create_job_requisition",
+        "description": "Create a new job requisition",
+        "parameters": {},
+        "categories": [
+          "hr",
+          "recruitment",
+          "requisition"
+        ],
+        "keywords": [
+          "job",
+          "position",
+          "hiring",
+          "requisition"
+        ]
+      },
+      {
+        "name": "screen_resume",
+        "description": "Screen and evaluate resumes",
+        "parameters": {},
+        "categories": [
+          "hr",
+          "recruitment",
+          "screening"
+        ],
+        "keywords": [
+          "resume",
+          "cv",
+          "screening",
+          "evaluation"
+        ]
+      },
+      {
+        "name": "schedule_interview",
+        "description": "Schedule interviews with candidates",
+        "parameters": {},
+        "categories": [
+          "hr",
+          "recruitment",
+          "scheduling"
+        ],
+        "keywords": [
+          "interview",
+          "schedule",
+          "calendar",
+          "meeting"
+        ]
+      },
+      {
+        "name": "send_notification",
+        "description": "Send notifications to candidates or team",
+        "parameters": {},
+        "categories": [
+          "hr",
+          "communication"
+        ],
+        "keywords": [
+          "email",
+          "notification",
+          "message",
+          "communication"
+        ]
+      }
+    ],
+    "host": "localhost",
+    "port": 8100,
+    "protocol": "http",
+    "metadata": {},
+    "created_at": "2025-09-17T11:38:34.973317"
+  },
+  "analytics": {
+    "name": "Analytics Tools",
+    "description": "MCP server for analytics and reporting",
+    "version": "1.0.0",
+    "tools": [
+      {
+        "name": "generate_report",
+        "description": "Generate analytics reports",
+        "parameters": {},
+        "categories": [
+          "analytics",
+          "reporting"
+        ],
+        "keywords": [
+          "report",
+          "analytics",
+          "data",
+          "metrics"
+        ]
+      },
+      {
+        "name": "analyze_metrics",
+        "description": "Analyze recruitment metrics",
+        "parameters": {},
+        "categories": [
+          "analytics",
+          "hr"
+        ],
+        "keywords": [
+          "metrics",
+          "kpi",
+          "analysis",
+          "performance"
+        ]
+      }
+    ],
+    "host": "localhost",
+    "port": 8101,
+    "protocol": "http",
+    "metadata": {},
+    "created_at": "2025-09-17T11:38:34.974067"
+  },
+  "communication": {
+    "name": "Communication Tools",
+    "description": "MCP server for communication operations",
+    "version": "1.0.0",
+    "tools": [
+      {
+        "name": "send_email",
+        "description": "Send email messages",
+        "parameters": {},
+        "categories": [
+          "communication",
+          "email"
+        ],
+        "keywords": [
+          "email",
+          "send",
+          "message"
+        ]
+      },
+      {
+        "name": "send_sms",
+        "description": "Send SMS messages",
+        "parameters": {},
+        "categories": [
+          "communication",
+          "sms"
+        ],
+        "keywords": [
+          "sms",
+          "text",
+          "message",
+          "mobile"
+        ]
+      },
+      {
+        "name": "create_calendar_event",
+        "description": "Create calendar events",
+        "parameters": {},
+        "categories": [
+          "communication",
+          "scheduling"
+        ],
+        "keywords": [
+          "calendar",
+          "event",
+          "meeting",
+          "schedule"
+        ]
+      }
+    ],
+    "host": "localhost",
+    "port": 8102,
+    "protocol": "http",
+    "metadata": {},
+    "created_at": "2025-09-17T11:38:34.974648"
+  }
+}
